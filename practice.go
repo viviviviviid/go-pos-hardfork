@@ -2,7 +2,7 @@ package main
 
 import "fmt"
 
-func main() {
+func practice() {
 	name := "nico"
 	fmt.Println(name)
 }
