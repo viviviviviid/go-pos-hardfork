@@ -1,51 +1,39 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
-	"html/template"
 	"log"
 	"net/http"
 
-	"github.com/viviviviviid/go-coin/blockchain"
+	"github.com/viviviviviid/go-coin/utils"
 )
 
-const (
-	port        string = ":4000"
-	templateDir string = "templates/"
-)
+const port string = ":4000"
 
-var templates *template.Template
-
-type homeData struct {
-	PageTitle string
-	Blocks    []*blockchain.Block
+type URLDescription struct {
+	URL         string
+	Method      string
+	Description string
 }
 
-func home(rw http.ResponseWriter, r *http.Request) { // (유저에게 보내고싶은 내용, pointer)
-	data := homeData{"Home", blockchain.GetBlockchain().AllBlocks()}
-	templates.ExecuteTemplate(rw, "home", data)
-}
-
-func add(rw http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case "GET":
-		templates.ExecuteTemplate(rw, "add", nil)
-	case "POST":
-		r.ParseForm()
-		data := r.Form.Get("blockData") // add.gohtml에서 버튼을 눌렀을때 얻어온 데이터
-		// .Form은 함수가 아닌 map
-		blockchain.GetBlockchain().AddBlock(data)
-		fmt.Println(data)
-		http.Redirect(rw, r, "/", http.StatusPermanentRedirect) // redirect
+func documentation(rw http.ResponseWriter, r *http.Request) {
+	data := []URLDescription{
+		{
+			URL:         "/",
+			Method:      "GET",
+			Description: "See Documentation",
+		},
 	}
+	b, err := json.Marshal(data) // struct 데이터를 json으로 변환 -> 하지만 byte slice 또는 error로 return됨
+	utils.HandleErr(err)         // 직접 만든 에러 처리 메서드
 
+	fmt.Printf("%s", b) // byte slice 형태의 json을 decode
 }
 
 func main() {
-	templates = template.Must(template.ParseGlob(templateDir + "pages/*.gohtml")) // pattern을 인자로 받음
-	templates = template.Must(templates.ParseGlob(templateDir + "partials/*.gohtml"))
-	http.HandleFunc("/", home)
-	http.HandleFunc("/add", add)
+	// explorer.Start()
+	http.HandleFunc("/", documentation)
 	fmt.Printf("Listening on http://localhost%s\n", port)
-	log.Fatal(http.ListenAndServe(port, nil)) // error 발생 시 log처리 log.Fatal()
+	log.Fatal(http.ListenAndServe(port, nil))
 }
