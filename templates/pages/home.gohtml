@@ -1,12 +1,13 @@
 {{define "home"}}
 <!DOCTYPE html>
 <html lang="en">
-  {{template "head"}}
+  {{template "head" .PageTitle}}
   <body>
-    {{template "header"}}
+    {{template "header" .PageTitle}}
     <main>
       {{range .Blocks}}
-      {{template "block"}}
+        {{template "block" .}} 
+        {{/* range 내에 있는 "."은 Blocks 배열의 각각의 Block를 가리키게됨 */}}
       {{end}} 
       <!-- end로 range를 끝낼 수 있음 -->
     </main>
