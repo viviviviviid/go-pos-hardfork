@@ -1,0 +1,16 @@
+{{define "home"}}
+<!DOCTYPE html>
+<html lang="en">
+  {{template "head"}}
+  <body>
+    {{template "header"}}
+    <main>
+      {{range .Blocks}}
+      {{template "block"}}
+      {{end}} 
+      <!-- end로 range를 끝낼 수 있음 -->
+    </main>
+    {{template "footer"}}
+  </body>
+</html>
+{{end}}
