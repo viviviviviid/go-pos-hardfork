@@ -12,7 +12,6 @@ import (
 var templates *template.Template
 
 const (
-	port        string = ":4000"
 	templateDir string = "explorer/templates/"
 )
 
@@ -44,13 +43,15 @@ func add(rw http.ResponseWriter, r *http.Request) {
 
 }
 
-func Start() {
+func Start(port int) {
+	handler := http.NewServeMux()
 	// Must를 찍어보면, 그냥 단순하게 에러가 있는지 확인해주는 helper
 	templates = template.Must(template.ParseGlob(templateDir + "pages/*.gohtml"))     // template들을 load
 	templates = template.Must(templates.ParseGlob(templateDir + "partials/*.gohtml")) // template들을 load한 내용을 가지고 또다시 load
 	// **/*.gohtml을 하지못해서 위 두줄이 된 것
-	http.HandleFunc("/", home)
-	http.HandleFunc("/add", add)
-	fmt.Printf("Listening on http://localhost%s\n", port)
-	log.Fatal(http.ListenAndServe(port, nil)) // error 발생 시 log처리 log.Fatal()
+	handler.HandleFunc("/", home)
+	handler.HandleFunc("/add", add)
+	fmt.Printf("Listening on http://localhost:%d\n", port)
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), handler)) // error 발생 시 log처리 log.Fatal()
+	// 우리가 만든 Mux로 defaultMux를 대체함
 }
