@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/gorilla/mux"
 	"github.com/viviviviviid/go-coin/blockchain"
@@ -53,7 +54,7 @@ func documentation(rw http.ResponseWriter, r *http.Request) {
 			Description: "Add A Block",
 		},
 		{
-			URL:         url("/blocks/{id}"),
+			URL:         url("/blocks/{height}"),
 			Method:      "POST",
 			Description: "See A Block",
 		},
@@ -81,8 +82,11 @@ func blocks(rw http.ResponseWriter, r *http.Request) {
 }
 
 func block(rw http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r) // r인 request에서 Mux가 변수를 추출
-	id := vars["id"]    // 윗줄에서 추출한 변수 map에서 id를 추출
+	vars := mux.Vars(r)                     // r인 request에서 Mux가 변수를 추출
+	id, err := strconv.Atoi(vars["height"]) // 윗줄에서 추출한 변수 map에서 id를 추출 // Atoi: string to integer
+	utils.HandleErr(err)
+	block := blockchain.GetBlockchain().GetBlock(id)
+	json.NewEncoder(rw).Encode(block)
 }
 
 func Start(aPort int) {
@@ -90,7 +94,7 @@ func Start(aPort int) {
 	port = fmt.Sprintf(":%d", aPort)
 	router.HandleFunc("/", documentation).Methods("GET")
 	router.HandleFunc("/blocks", blocks).Methods("GET", "POST")
-	router.HandleFunc("/blocks/{id:[0-9]+}", block).Methods("GET") // Gorilla Mux 공식문서에 나와있는대로
+	router.HandleFunc("/blocks/{height:[0-9]+}", block).Methods("GET") // Gorilla Mux 공식문서에 나와있는대로
 	fmt.Printf("Listening on http://localhost%s\n", port)
 	log.Fatal(http.ListenAndServe(port, router))
 }
