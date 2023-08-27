@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+
+	"github.com/viviviviviid/go-coin/blockchain"
+	"github.com/viviviviviid/go-coin/utils"
 )
 
 const port string = ":4000"
@@ -23,6 +26,10 @@ type URLDescription struct {
 	Payload     string `json:"payload, omitempty"` // omitempty 옵션은 내용이 없을때 화면에서 생략
 }
 
+type AddBlockBody struct {
+	Message string
+}
+
 func (u URLDescription) String() string { // stringer interface는 이렇게 구현해놓은순간부터, URLDescription을 직접 print할경우 return의 내용을 출력해준다.
 	return "Hello I'm the URL description" // 어떻게 변수를 넣어야할지 알려주는 가이드라인으로 작성
 }
@@ -35,10 +42,9 @@ func documentation(rw http.ResponseWriter, r *http.Request) {
 			Description: "See Documentation",
 		},
 		{
-			URL:         URL("/blocks"),
+			URL:         URL("/blocks/{id}"),
 			Method:      "POST",
-			Description: "Add Block",
-			Payload:     "data:string",
+			Description: "See A Block",
 		},
 	}
 	rw.Header().Add("Content-Type", "application/json") // json으로 인지하도록 설정
@@ -49,9 +55,24 @@ func documentation(rw http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(rw).Encode(data) // 윗 세줄과 같은 코드
 }
 
+func blocks(rw http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case "GET": // http://localhost:4000/blocks 에 들어갔을때
+		rw.Header().Add("Content-Type", "application/json")
+		json.NewEncoder(rw).Encode(blockchain.GetBlockchain().AllBlocks())
+		// Encode가 Marshall의 일을 해주고, 결과를 ResponseWrite에 작성
+	case "POST":
+		var addBlockBody AddBlockBody                                  // 아무것도 없는 배열부터 만들기 // AddBlockBody는 struct 형태의 type // addBlockBody는 변수
+		utils.HandleErr(json.NewDecoder(r.Body).Decode(&addBlockBody)) // r.Body에서 read한걸 NewDecoder가 제공해주는 reader에 넣기 // 그래서 decode하고 내용물을 addBlockBody에 넣음
+		blockchain.GetBlockchain().AddBlock(addBlockBody.Message)
+		rw.WriteHeader(http.StatusCreated) // StatusCreated : 201 (status code)
+	}
+}
+
 func main() {
 	// explorer.Start()
 	http.HandleFunc("/", documentation)
+	http.HandleFunc("/blocks", blocks)
 	fmt.Printf("Listening on http://localhost%s\n", port)
 	log.Fatal(http.ListenAndServe(port, nil))
 }
