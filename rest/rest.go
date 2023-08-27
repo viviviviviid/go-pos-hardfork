@@ -63,8 +63,6 @@ func documentation(rw http.ResponseWriter, r *http.Request) {
 			Description: "See A Block",
 		},
 	}
-	rw.Header().Add("Content-Type", "application/json") // json으로 인지하도록 설정
-
 	// b, err := json.Marshal(data)                        // struct 데이터를 json으로 변환 -> 하지만 byte slice 또는 error로 return됨
 	// utils.HandleErr(err)                                // 직접 만든 에러 처리 메서드
 	// fmt.Fprintf(rw, "%s", b)
@@ -100,9 +98,17 @@ func block(rw http.ResponseWriter, r *http.Request) {
 
 }
 
+func jsonContentTypeMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		rw.Header().Add("Content-Type", "application/json") // json으로 인지하도록 설정
+		next.ServeHTTP(rw, r)
+	})
+}
+
 func Start(aPort int) {
-	router := mux.NewRouter() // Gorilla Dependecy
 	port = fmt.Sprintf(":%d", aPort)
+	router := mux.NewRouter()             // Gorilla Dependecy
+	router.Use(jsonContentTypeMiddleware) // middleware사용
 	router.HandleFunc("/", documentation).Methods("GET")
 	router.HandleFunc("/blocks", blocks).Methods("GET", "POST")
 	router.HandleFunc("/blocks/{height:[0-9]+}", block).Methods("GET") // Gorilla Mux 공식문서에 나와있는대로
