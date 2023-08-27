@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/gorilla/mux"
 	"github.com/viviviviviid/go-coin/blockchain"
 	"github.com/viviviviviid/go-coin/utils"
 )
@@ -79,11 +80,17 @@ func blocks(rw http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func block(rw http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r) // r인 request에서 Mux가 변수를 추출
+	id := vars["id"]    // 윗줄에서 추출한 변수 map에서 id를 추출
+}
+
 func Start(aPort int) {
-	handler := http.NewServeMux() // ServeMux는 url(/blocks)와 url함수(blocks)를 연결해줌
+	router := mux.NewRouter() // Gorilla Dependecy
 	port = fmt.Sprintf(":%d", aPort)
-	handler.HandleFunc("/", documentation)
-	handler.HandleFunc("/blocks", blocks)
+	router.HandleFunc("/", documentation).Methods("GET")
+	router.HandleFunc("/blocks", blocks).Methods("GET", "POST")
+	router.HandleFunc("/blocks/{id:[0-9]+}", block).Methods("GET") // Gorilla Mux 공식문서에 나와있는대로
 	fmt.Printf("Listening on http://localhost%s\n", port)
-	log.Fatal(http.ListenAndServe(port, handler))
+	log.Fatal(http.ListenAndServe(port, router))
 }

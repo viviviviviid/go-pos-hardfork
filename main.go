@@ -1,12 +1,10 @@
 package main
 
 import (
-	"github.com/viviviviviid/go-coin/explorer"
 	"github.com/viviviviviid/go-coin/rest"
 )
 
 func main() {
-	go explorer.Start(3000)
 	rest.Start(4000)
 }
 
