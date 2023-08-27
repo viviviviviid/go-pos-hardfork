@@ -98,7 +98,7 @@ func block(rw http.ResponseWriter, r *http.Request) {
 
 }
 
-func jsonContentTypeMiddleware(next http.Handler) http.Handler {
+func jsonContentTypeMiddleware(next http.Handler) http.Handler { //
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		rw.Header().Add("Content-Type", "application/json") // json으로 인지하도록 설정
 		next.ServeHTTP(rw, r)
@@ -108,7 +108,7 @@ func jsonContentTypeMiddleware(next http.Handler) http.Handler {
 func Start(aPort int) {
 	port = fmt.Sprintf(":%d", aPort)
 	router := mux.NewRouter()             // Gorilla Dependecy
-	router.Use(jsonContentTypeMiddleware) // middleware사용
+	router.Use(jsonContentTypeMiddleware) // 모든 라우터가 이 middleware사용
 	router.HandleFunc("/", documentation).Methods("GET")
 	router.HandleFunc("/blocks", blocks).Methods("GET", "POST")
 	router.HandleFunc("/blocks/{height:[0-9]+}", block).Methods("GET") // Gorilla Mux 공식문서에 나와있는대로
