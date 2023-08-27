@@ -12,12 +12,9 @@ const port string = ":4000"
 type URL string // string 형태를 가진 URL이라는 type // type을 만들 수 있음
 
 func (u URL) MarshalText() ([]byte, error) { // MarshalText: Field가 json string으로써 어떻게 보여질지 결정하는 Method
-	return []byte("hello"), nil // web화면에 json을 뿌려주면 url: "hello" 가 출력
-}
-
-func (u URL) String() string {
-	return "hi"
-}
+	url := fmt.Sprintf("http://localhost%s%s", port, u)
+	return []byte(url), nil
+} // URL type에 대한 method가 된 것
 
 type URLDescription struct {
 	URL         URL    `json:"url"` // json형태로 웹에 출력된다면, 별명상태로 출력 -> 소문자로 출력시키는 방법
