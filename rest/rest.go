@@ -32,6 +32,10 @@ type addBlockBody struct {
 	Message string
 }
 
+type errorResponse struct {
+	ErrorMessage string `json:"errorMessage"`
+}
+
 func (u urlDescription) String() string { // stringer interface는 이렇게 구현해놓은순간부터, URLDescription을 직접 print할경우 return의 내용을 출력해준다.
 	return "Hello I'm the URL description" // 어떻게 변수를 넣어야할지 알려주는 가이드라인으로 작성
 }
@@ -85,8 +89,15 @@ func block(rw http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)                     // r인 request에서 Mux가 변수를 추출
 	id, err := strconv.Atoi(vars["height"]) // 윗줄에서 추출한 변수 map에서 id를 추출 // Atoi: string to integer
 	utils.HandleErr(err)
-	block := blockchain.GetBlockchain().GetBlock(id)
-	json.NewEncoder(rw).Encode(block)
+	block, err := blockchain.GetBlockchain().GetBlock(id)
+	// error handling
+	encoder := json.NewEncoder(rw)
+	if err == blockchain.ErrNotFound {
+		encoder.Encode(errorResponse{fmt.Sprint(err)})
+	} else {
+		encoder.Encode(block)
+	}
+
 }
 
 func Start(aPort int) {
