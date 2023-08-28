@@ -23,7 +23,7 @@ func Start() {
 	}
 
 	port := flag.Int("port", 4000, "Set port of the server")
-	mode := flag.String("mode", "rest", "Choose between 'html' and 'rest'")
+	mode := flag.String("mode", "rest", "Choose between 'html', 'rest' and 'both' (both mean html and rest)")
 	flag.Parse()
 
 	switch *mode {
@@ -31,9 +31,12 @@ func Start() {
 		rest.Start(*port)
 	case "html":
 		explorer.Start(*port)
+	case "both":
+		go explorer.Start(*port)
+		rest.Start(*port + 1)
+		// fmt.Scanln() // go가 받을때 main 함수가 먼저 종료되지 않게 대기하기 위해서는 fmt.Scanln()를 입력해줘야 한다.
 	default:
 		usage()
 	}
 
-	fmt.Println(*port, *mode)
 }
