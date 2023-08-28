@@ -1,11 +1,32 @@
 package main
 
 import (
-	"github.com/viviviviviid/go-coin/rest"
+	"fmt"
+	"os"
 )
 
+func usage() {
+	fmt.Printf("Welcome to 민석's Blockchain Project\n\n")
+	fmt.Printf("Please use the following commands:\n\n")
+	fmt.Printf("explorer:	Start the HTML Explorer\n")
+	fmt.Printf("rest: 		Start the REST API (recommended)\n")
+	os.Exit(0) // 프로그램 정지 및 에러 코드 // 0은 문제 없음
+}
+
 func main() {
-	rest.Start(4000)
+	if len(os.Args) < 2 { // os.Args: 터미널 창에서 입력한 내용 -> os.Args[1]: 우리가 추가적으로 입력한 내용.
+		// ex) go run main.go helllo -> os.Args[1] === helllo
+		usage()
+	}
+
+	switch os.Args[1] {
+	case "explorer":
+		fmt.Println("Start Explorer")
+	case "rest":
+		fmt.Println("Start REST API")
+	default: // 그 외적으로 기본 값.
+		usage()
+	}
 }
 
 // Mux : Multiplexer
