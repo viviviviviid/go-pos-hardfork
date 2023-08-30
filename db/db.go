@@ -36,6 +36,10 @@ func DB() *bolt.DB {
 	return db
 }
 
+func Close() { // DB를 계속 열어두면 data 손상이 날 수 있으므로, 꼭 닫아줘야함
+	DB().Close()
+}
+
 func SaveBlock(hash string, data []byte) {
 	fmt.Printf("Saving Block %s\nData: %b", hash, data)
 	err := DB().Update(func(tx *bolt.Tx) error {

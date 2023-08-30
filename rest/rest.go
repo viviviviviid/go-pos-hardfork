@@ -8,6 +8,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/viviviviviid/go-coin/blockchain"
+	"github.com/viviviviviid/go-coin/utils"
 )
 
 var port string
@@ -70,15 +71,14 @@ func documentation(rw http.ResponseWriter, r *http.Request) {
 func blocks(rw http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET": // http://localhost:4000/blocks 에 들어갔을때
-		return
-		// json.NewEncoder(rw).Encode(blockchain.GetBlockchain().AllBlocks())
+
+		json.NewEncoder(rw).Encode(blockchain.Blockchain().Blocks())
 		// Encode가 Marshall의 일을 해주고, 결과를 ResponseWrite에 작성
 	case "POST":
-		return
-		// var addBlockBody addBlockBody
-		// utils.HandleErr(json.NewDecoder(r.Body).Decode(&addBlockBody)) // r.Body에서 read한걸 NewDecoder가 제공해주는 reader에 넣기 // 그래서 decode하고 내용물을 addBlockBody에 넣음
-		// blockchain.GetBlockchain().AddBlock(addBlockBody.Message)
-		// rw.WriteHeader(http.StatusCreated) // StatusCreated : 201 (status code)
+		var addBlockBody addBlockBody
+		utils.HandleErr(json.NewDecoder(r.Body).Decode(&addBlockBody)) // r.Body에서 read한걸 NewDecoder가 제공해주는 reader에 넣기 // 그래서 decode하고 내용물을 addBlockBody에 넣음
+		blockchain.Blockchain().AddBlock(addBlockBody.Message)
+		rw.WriteHeader(http.StatusCreated) // StatusCreated : 201 (status code)
 	}
 }
 

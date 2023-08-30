@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"runtime"
 
 	"github.com/viviviviviid/go-coin/explorer"
 	"github.com/viviviviviid/go-coin/rest"
@@ -14,7 +15,9 @@ func usage() {
 	fmt.Printf("Please use the following flags:\n\n")
 	fmt.Printf("-port:	Set the PORT of the server\n")
 	fmt.Printf("-mode:	Choose between 'html' and 'rest'\n")
-	os.Exit(0) // 프로그램 정지 및 에러 코드 // 0은 문제 없음 // 1부터 에러
+	os.Exit(0)       // 프로그램 정지 및 에러 코드 // 0은 문제 없음 // 1부터 에러
+	runtime.Goexit() // main함수에서 defer로 db를 닫은 후, Goexit로 모든 함수 킬
+	// 설명보면 defer 이후에 사용해야한다고 나와있음 // defer도 죽이기때문아닐까 // 그래서 runtime 패키지 이용하는거고
 }
 
 func Start() {

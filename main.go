@@ -1,13 +1,14 @@
 package main
 
 import (
-	"github.com/viviviviviid/go-coin/blockchain"
 	"github.com/viviviviviid/go-coin/cli"
+	"github.com/viviviviviid/go-coin/db"
 )
 
 func main() {
-	blockchain.Blockchain()
+	defer db.Close() // 다 끝난뒤 db 닫아줌
 	cli.Start()
+
 }
 
 // Mux : Multiplexer

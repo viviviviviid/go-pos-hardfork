@@ -31,6 +31,21 @@ func (b *blockchain) AddBlock(data string) {
 	b.persist()
 }
 
+func (b *blockchain) Blocks() []*Block {
+	var blocks []*Block
+	hashCursor := b.NewestHash // hashCursor: 우리가 찾을 target hash
+	for {
+		block, _ := FindBlock(hashCursor) // prevHash를 찾다보면 제네시스 블록은 무조건 찾을 수 있으므로 err은 무시 // 제네시스에는 prevHash가 없기때문
+		blocks = append(blocks, block)
+		if block.PrevHash != "" {
+			hashCursor = block.PrevHash // target hash를 prevHash로 변경함으로써 계속 파고들수있음
+		} else {
+			break
+		}
+	}
+	return blocks
+}
+
 func Blockchain() *blockchain {
 	if b == nil { // 블록체인 최초 실행
 		once.Do(func() {
