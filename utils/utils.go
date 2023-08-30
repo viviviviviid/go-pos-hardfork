@@ -18,3 +18,8 @@ func ToBytes(i interface{}) []byte { // interface: 함수에게 뭐든 받으라
 	HandleErr(encoder.Encode(i))        // encode해서 blockBuffer에 넣음
 	return aBuffer.Bytes()
 }
+
+func FromBytes(i interface{}, data []byte) { // ex (interface{}: 블록의 포인터, data: data) -> data를 포인터로 복원
+	encoder := gob.NewDecoder(bytes.NewReader(data)) // 디코더 생성
+	HandleErr(encoder.Decode(i))
+}

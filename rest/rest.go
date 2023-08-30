@@ -5,11 +5,9 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strconv"
 
 	"github.com/gorilla/mux"
 	"github.com/viviviviviid/go-coin/blockchain"
-	"github.com/viviviviviid/go-coin/utils"
 )
 
 var port string
@@ -58,7 +56,7 @@ func documentation(rw http.ResponseWriter, r *http.Request) {
 			Description: "Add A Block",
 		},
 		{
-			URL:         url("/blocks/{height}"),
+			URL:         url("/blocks/{hash}"),
 			Method:      "POST",
 			Description: "See A Block",
 		},
@@ -72,22 +70,22 @@ func documentation(rw http.ResponseWriter, r *http.Request) {
 func blocks(rw http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET": // http://localhost:4000/blocks 에 들어갔을때
-		rw.Header().Add("Content-Type", "application/json")
-		json.NewEncoder(rw).Encode(blockchain.GetBlockchain().AllBlocks())
+		return
+		// json.NewEncoder(rw).Encode(blockchain.GetBlockchain().AllBlocks())
 		// Encode가 Marshall의 일을 해주고, 결과를 ResponseWrite에 작성
 	case "POST":
-		var addBlockBody addBlockBody
-		utils.HandleErr(json.NewDecoder(r.Body).Decode(&addBlockBody)) // r.Body에서 read한걸 NewDecoder가 제공해주는 reader에 넣기 // 그래서 decode하고 내용물을 addBlockBody에 넣음
-		blockchain.GetBlockchain().AddBlock(addBlockBody.Message)
-		rw.WriteHeader(http.StatusCreated) // StatusCreated : 201 (status code)
+		return
+		// var addBlockBody addBlockBody
+		// utils.HandleErr(json.NewDecoder(r.Body).Decode(&addBlockBody)) // r.Body에서 read한걸 NewDecoder가 제공해주는 reader에 넣기 // 그래서 decode하고 내용물을 addBlockBody에 넣음
+		// blockchain.GetBlockchain().AddBlock(addBlockBody.Message)
+		// rw.WriteHeader(http.StatusCreated) // StatusCreated : 201 (status code)
 	}
 }
 
 func block(rw http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)                     // r인 request에서 Mux가 변수를 추출
-	id, err := strconv.Atoi(vars["height"]) // 윗줄에서 추출한 변수 map에서 id를 추출 // Atoi: string to integer
-	utils.HandleErr(err)
-	block, err := blockchain.GetBlockchain().GetBlock(id)
+	vars := mux.Vars(r)  // r인 request에서 Mux가 변수를 추출
+	hash := vars["hash"] // 윗줄에서 추출한 변수 map에서 id를 추출
+	block, err := blockchain.FindBlock(hash)
 	// error handling
 	encoder := json.NewEncoder(rw)
 	if err == blockchain.ErrNotFound {
@@ -111,7 +109,8 @@ func Start(aPort int) {
 	router.Use(jsonContentTypeMiddleware) // 모든 라우터가 이 middleware사용
 	router.HandleFunc("/", documentation).Methods("GET")
 	router.HandleFunc("/blocks", blocks).Methods("GET", "POST")
-	router.HandleFunc("/blocks/{height:[0-9]+}", block).Methods("GET") // Gorilla Mux 공식문서에 나와있는대로
+	router.HandleFunc("/blocks/{hash:[a-f0-9]+}", block).Methods("GET") // hash: hexadecimal 타입 // [a-f0-9] 이렇게해야 둘다 받을 수 있음
+	// Gorilla Mux 공식문서에 나와있는대로
 	fmt.Printf("Listening on http://localhost%s\n", port)
 	log.Fatal(http.ListenAndServe(port, router))
 }

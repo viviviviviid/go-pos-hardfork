@@ -21,7 +21,7 @@ type homeData struct {
 }
 
 func home(rw http.ResponseWriter, r *http.Request) { // (유저에게 보내고싶은 내용, pointer)
-	data := homeData{"Home", blockchain.GetBlockchain().AllBlocks()}
+	data := homeData{"Home", nil}
 	templates.ExecuteTemplate(rw, "home", data)
 }
 
@@ -34,7 +34,7 @@ func add(rw http.ResponseWriter, r *http.Request) {
 		r.ParseForm()
 		data := r.Form.Get("blockData") // add.gohtml에서 버튼을 눌렀을때 얻어온 데이터
 		// .Form은 함수가 아닌 map
-		blockchain.GetBlockchain().AddBlock(data)
+		blockchain.Blockchain().AddBlock(data)
 		fmt.Println(data)
 		http.Redirect(rw, r, "/", http.StatusPermanentRedirect) // redirect
 		// statusPer- 는 Redirect시 300번대 이상의 status를 파라미터로 넣어야하는데

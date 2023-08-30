@@ -1,12 +1,13 @@
 package main
 
-import "github.com/viviviviviid/go-coin/blockchain"
+import (
+	"github.com/viviviviviid/go-coin/blockchain"
+	"github.com/viviviviviid/go-coin/cli"
+)
 
 func main() {
-	blockchain.Blockchain().AddBlock("First")
-	blockchain.Blockchain().AddBlock("Second")
-	blockchain.Blockchain().AddBlock("Third")
-
+	blockchain.Blockchain()
+	cli.Start()
 }
 
 // Mux : Multiplexer
