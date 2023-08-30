@@ -1,9 +1,7 @@
 package blockchain
 
 import (
-	"bytes"
 	"crypto/sha256"
-	"encoding/gob"
 	"fmt"
 
 	"github.com/viviviviviid/go-coin/db"
@@ -17,15 +15,8 @@ type Block struct {
 	Height   int    `json:"height"`
 }
 
-func (b *Block) toBytes() []byte {
-	var blockBuffer bytes.Buffer            // bytes의 Buffer는 bytes를 넣을 수 있는 공간 // read-write 가능
-	encoder := gob.NewEncoder(&blockBuffer) // encoder을 만들고
-	utils.HandleErr(encoder.Encode(b))      // encode해서 blockBuffer에 넣음
-	return blockBuffer.Bytes()
-}
-
 func (b *Block) persist() {
-	db.SaveBlock(b.Hash, b.toBytes())
+	db.SaveBlock(b.Hash, utils.ToBytes(b)) // interface로 인자를 받은 ToBytes는 뭐든 받을 수 있다 = interface
 }
 
 func createBlock(data string, prevHash string, height int) *Block {

@@ -1,9 +1,20 @@
 package utils
 
-import "log"
+import (
+	"bytes"
+	"encoding/gob"
+	"log"
+)
 
 func HandleErr(err error) {
 	if err != nil {
 		log.Panic(err)
 	}
+}
+
+func ToBytes(i interface{}) []byte { // interface: 함수에게 뭐든 받으라고 하는 것
+	var aBuffer bytes.Buffer            // bytes의 Buffer는 bytes를 넣을 수 있는 공간 // read-write 가능
+	encoder := gob.NewEncoder(&aBuffer) // encoder을 만들고
+	HandleErr(encoder.Encode(i))        // encode해서 blockBuffer에 넣음
+	return aBuffer.Bytes()
 }

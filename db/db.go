@@ -11,7 +11,7 @@ import (
 // bolt는 SQL의 Table과 비슷한 bucket을 갖는다
 
 const (
-	dbName       = "blockchaing.db"
+	dbName       = "blockchain.db"
 	dataBucket   = "data"
 	blocksBucket = "blocks"
 )
@@ -39,7 +39,6 @@ func SaveBlock(hash string, data []byte) {
 	fmt.Printf("Saving Block %s\nData: %b", hash, data)
 	err := DB().Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(blocksBucket))
-		fmt.Println("bucket: ", bucket)       // 한번 출력해보고 싶어서
 		err := bucket.Put([]byte(hash), data) // db에 저장 key: value => hash: data
 		return err
 	})
@@ -49,7 +48,7 @@ func SaveBlock(hash string, data []byte) {
 func SaveBlockchain(data []byte) {
 	err := DB().Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(dataBucket))
-		err := bucket.Put([]byte("blockchain"), data) // db에 저장 key: value => "blockchain": data
+		err := bucket.Put([]byte("checkpoint"), data) // db에 저장 key: value => "blockchain": data
 		return err
 	})
 	utils.HandleErr(err)
