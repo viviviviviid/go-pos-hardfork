@@ -43,11 +43,11 @@ func (b *blockchain) Blocks() []*Block {
 			break
 		}
 	}
-	return blocks
+	return blocks // 모든 블록이 담긴 slice를 반환
 }
 
 func Blockchain() *blockchain {
-	if b == nil { // 블록체인 최초 실행
+	if b == nil {
 		once.Do(func() {
 			b = &blockchain{"", 0} // 새로 만든 텅빈 블록체인
 			checkpoint := db.Checkpoint()
