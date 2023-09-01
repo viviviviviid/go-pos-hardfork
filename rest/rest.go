@@ -47,6 +47,11 @@ func documentation(rw http.ResponseWriter, r *http.Request) {
 			Description: "See Documentation",
 		},
 		{
+			URL:         url("/status"),
+			Method:      "GET",
+			Description: "See the Status of the Blockchain",
+		},
+		{
 			URL:         url("/blocks"),
 			Method:      "GET",
 			Description: "See All Block",
@@ -102,11 +107,16 @@ func jsonContentTypeMiddleware(next http.Handler) http.Handler { //
 	})
 }
 
+func status(rw http.ResponseWriter, r *http.Request) {
+	json.NewEncoder(rw).Encode(blockchain.Blockchain())
+}
+
 func Start(aPort int) {
 	port = fmt.Sprintf(":%d", aPort)
 	router := mux.NewRouter()             // Gorilla Dependecy
 	router.Use(jsonContentTypeMiddleware) // 모든 라우터가 이 middleware사용
 	router.HandleFunc("/", documentation).Methods("GET")
+	router.HandleFunc("/status", status)
 	router.HandleFunc("/blocks", blocks).Methods("GET", "POST")
 	router.HandleFunc("/blocks/{hash:[a-f0-9]+}", block).Methods("GET") // hash: hexadecimal 타입 // [a-f0-9] 이렇게해야 둘다 받을 수 있음
 	// Gorilla Mux 공식문서에 나와있는대로
