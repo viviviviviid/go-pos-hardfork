@@ -4,16 +4,21 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/viviviviviid/go-coin/db"
 	"github.com/viviviviviid/go-coin/utils"
 )
 
+const difficulty int = 2
+
 type Block struct {
-	Data     string `json:"data"` // struct tag
-	Hash     string `json:"hash"`
-	PrevHash string `json:"prevHash,omitempty"` // omitempty option
-	Height   int    `json:"height"`
+	Data       string `json:"data"` // struct tag
+	Hash       string `json:"hash"`
+	PrevHash   string `json:"prevHash,omitempty"` // omitempty option
+	Height     int    `json:"height"`
+	Difficulty int    `json:"difficulty"`
+	Nonce      int    `json:"nonce"`
 }
 
 func (b *Block) persist() {
@@ -36,15 +41,31 @@ func FindBlock(hash string) (*Block, error) {
 	return block, nil
 }
 
+func (b *Block) mine() {
+	target := strings.Repeat("0", b.Difficulty)
+	for {
+		blockAsString := fmt.Sprint(b)
+		hash := fmt.Sprintf("%x", sha256.Sum256([]byte(blockAsString))) // 해시화하고서 []byte형태로 나온걸 hexa화함으로써 32bit hash생성
+		fmt.Printf("block as string: %s\nHash: %s\nTarget: %s\nNonce: %d\n\n", blockAsString, hash, target, b.Nonce)
+		if strings.HasPrefix(hash, target) {
+			b.Hash = hash
+			break
+		} else {
+			b.Nonce++
+		}
+	}
+}
+
 func createBlock(data string, prevHash string, height int) *Block {
 	block := &Block{
-		Data:     data,
-		Hash:     "",
-		PrevHash: prevHash,
-		Height:   height,
+		Data:       data,
+		Hash:       "",
+		PrevHash:   prevHash,
+		Height:     height,
+		Difficulty: difficulty,
+		Nonce:      0,
 	}
-	payload := block.Data + block.PrevHash + fmt.Sprint(block.Height) // string
-	block.Hash = fmt.Sprintf("%x", sha256.Sum256([]byte(payload)))    // payload를 byte slice로 hash하고 결과를 hex 형태의 string으로 받음
+	block.mine()
 	block.persist()
 	return block
 }

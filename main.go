@@ -6,9 +6,8 @@ import (
 )
 
 func main() {
-	defer db.Close() // 다 끝난뒤 db 닫아줌
+	defer db.Close()
 	cli.Start()
-
 }
 
 // Mux : Multiplexer
