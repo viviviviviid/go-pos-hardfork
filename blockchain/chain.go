@@ -38,6 +38,7 @@ func (b *blockchain) AddBlock(data string) {
 	b.Height = block.Height
 	b.CurrentDifficulty = block.Difficulty
 	b.persist()
+	fmt.Println(b)
 }
 
 func (b *blockchain) Blocks() []*Block {
