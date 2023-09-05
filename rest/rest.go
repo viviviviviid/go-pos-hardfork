@@ -102,10 +102,6 @@ func jsonContentTypeMiddleware(next http.Handler) http.Handler { //
 	})
 }
 
-func status(rw http.ResponseWriter, r *http.Request) {
-	utils.HandleErr(json.NewEncoder(rw).Encode(blockchain.Blockchain()))
-}
-
 func Start(aPort int) {
 	port = fmt.Sprintf(":%d", aPort)
 	router := mux.NewRouter()             // Gorilla Dependecy
