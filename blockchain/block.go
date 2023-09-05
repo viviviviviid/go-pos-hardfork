@@ -2,7 +2,6 @@ package blockchain
 
 import (
 	"errors"
-	"fmt"
 	"strings"
 	"time"
 
@@ -11,13 +10,13 @@ import (
 )
 
 type Block struct {
-	Hash         string `json:"hash"`
-	PrevHash     string `json:"prevHash,omitempty"`
-	Height       int    `json:"height"`
-	Difficulty   int    `json:"difficulty"`
-	Nonce        int    `json:"nonce"`
-	Timestamp    int    `json:"timestamp"`
-	Transactions []*Tx  `json:"transactions"`
+	Data       string `json:"data"` // struct tag
+	Hash       string `json:"hash"`
+	PrevHash   string `json:"prevHash,omitempty"` // omitempty option
+	Height     int    `json:"height"`
+	Difficulty int    `json:"difficulty"`
+	Nonce      int    `json:"nonce"`
+	Timestamp  int    `json:"timestamp"`
 }
 
 func (b *Block) persist() {
@@ -40,12 +39,11 @@ func FindBlock(hash string) (*Block, error) {
 	return block, nil
 }
 
-func (b *Block) mine() { // 채굴
+func (b *Block) mine() {
 	target := strings.Repeat("0", b.Difficulty)
 	for {
 		b.Timestamp = int(time.Now().Unix())
 		hash := utils.Hash(b)
-		fmt.Printf("\n\n\nTarget: %s\nHash: %s\nNonce: %d\n\n\n", target, hash, b.Nonce)
 		if strings.HasPrefix(hash, target) {
 			b.Hash = hash
 			break
@@ -55,15 +53,16 @@ func (b *Block) mine() { // 채굴
 	}
 }
 
-func createBlock(prevHash string, height int) *Block {
+func createBlock(data string, prevHash string, height int) *Block {
 	block := &Block{
-		Hash:         "",
-		PrevHash:     prevHash,
-		Height:       height,
-		Difficulty:   Blockchain().difficulty(),
-		Nonce:        0,
-		Transactions: []*Tx{makeCoinbaseTx("nico")},
+		Data:       data,
+		Hash:       "",
+		PrevHash:   prevHash,
+		Height:     height,
+		Difficulty: Blockchain().difficulty(),
+		Nonce:      0,
 	}
+
 	block.mine()
 	block.persist()
 	return block
