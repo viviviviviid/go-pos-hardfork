@@ -31,11 +31,7 @@ func add(rw http.ResponseWriter, r *http.Request) {
 	case "GET":
 		templates.ExecuteTemplate(rw, "add", nil)
 	case "POST":
-		r.ParseForm()
-		data := r.Form.Get("blockData") // add.gohtml에서 버튼을 눌렀을때 얻어온 데이터
-		// .Form은 함수가 아닌 map
-		blockchain.Blockchain().AddBlock(data)
-		fmt.Println(data)
+		blockchain.Blockchain().AddBlock()
 		http.Redirect(rw, r, "/", http.StatusPermanentRedirect) // redirect
 		// statusPer- 는 Redirect시 300번대 이상의 status를 파라미터로 넣어야하는데
 		// 뭘 넣을지 고민하는 사람들을 대신해서, 자동으로 대신 넣어주는 메서드함수
