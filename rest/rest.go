@@ -91,6 +91,10 @@ func block(rw http.ResponseWriter, r *http.Request) {
 
 }
 
+func status(rw http.ResponseWriter, r *http.Request) {
+	utils.HandleErr(json.NewEncoder(rw).Encode(blockchain.Blockchain()))
+}
+
 func jsonContentTypeMiddleware(next http.Handler) http.Handler { //
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		rw.Header().Add("Content-Type", "application/json") // json으로 인지하도록 설정

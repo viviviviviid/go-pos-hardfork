@@ -1,8 +1,6 @@
 package db
 
 import (
-	"fmt"
-
 	"github.com/boltdb/bolt"
 	"github.com/viviviviviid/go-coin/utils"
 )
@@ -41,7 +39,6 @@ func Close() { // DB를 계속 열어두면 data 손상이 날 수 있으므로,
 }
 
 func SaveBlock(hash string, data []byte) {
-	fmt.Printf("Saving Block %s\nData: %b", hash, data)
 	err := DB().Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(blocksBucket))
 		err := bucket.Put([]byte(hash), data) // db에 저장 key: value => hash: data
