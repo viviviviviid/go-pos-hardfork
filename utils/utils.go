@@ -27,7 +27,7 @@ func FromBytes(i interface{}, data []byte) { // ex (interface{}: 블록의 포�
 }
 
 func Hash(i interface{}) string {
-	s := fmt.Sprintf("%v", i)
+	s := fmt.Sprintf("%v", i) // v: default formmater
 	hash := sha256.Sum256([]byte(s))
 	return fmt.Sprintf("%x", hash)
 }

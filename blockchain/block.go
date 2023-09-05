@@ -39,7 +39,7 @@ func FindBlock(hash string) (*Block, error) {
 	return block, nil
 }
 
-func (b *Block) mine() {
+func (b *Block) mine() { // 채굴
 	target := strings.Repeat("0", b.Difficulty)
 	for {
 		b.Timestamp = int(time.Now().Unix())
@@ -53,7 +53,7 @@ func (b *Block) mine() {
 	}
 }
 
-func createBlock(data string, prevHash string, height int) *Block {
+func createBlock(prevHash string, height int) *Block {
 	block := &Block{
 		Data:       data,
 		Hash:       "",

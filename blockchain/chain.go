@@ -30,11 +30,13 @@ func (b *blockchain) persist() {
 	db.SaveBlockchain(utils.ToBytes(b))
 }
 
-func (b *blockchain) AddBlock(data string) {
-	block := createBlock(data, b.NewestHash, b.Height+1)
+func (b *blockchain) AddBlock() {
+	block := createBlock(b.NewestHash, b.Height+1)
 	b.NewestHash = block.Hash
 	b.Height = block.Height
+	b.CurrentDifficulty = block.Difficulty
 	b.persist()
+	fmt.Println(b)
 }
 
 func (b *blockchain) Blocks() []*Block {
@@ -71,7 +73,7 @@ func Blockchain() *blockchain {
 			checkpoint := db.Checkpoint()
 			// search for checkpoint on the db
 			if checkpoint == nil {
-				b.AddBlock("Genesis Block\n")
+				b.AddBlock()
 			} else { // checkpoint가 있다면
 				// restore b from bytes
 				// checkpoint가 있다면 새로 생성하는 것이 아닌 db로부터 블록체인을 복원
