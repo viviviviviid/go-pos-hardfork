@@ -1,16 +1,13 @@
 package blockchain
 
 import (
-	"crypto/sha256"
 	"errors"
-	"fmt"
 	"strings"
+	"time"
 
 	"github.com/viviviviviid/go-coin/db"
 	"github.com/viviviviviid/go-coin/utils"
 )
-
-const difficulty int = 2
 
 type Block struct {
 	Data       string `json:"data"` // struct tag
@@ -19,6 +16,7 @@ type Block struct {
 	Height     int    `json:"height"`
 	Difficulty int    `json:"difficulty"`
 	Nonce      int    `json:"nonce"`
+	Timestamp  int    `json:"timestamp"`
 }
 
 func (b *Block) persist() {
@@ -44,9 +42,8 @@ func FindBlock(hash string) (*Block, error) {
 func (b *Block) mine() {
 	target := strings.Repeat("0", b.Difficulty)
 	for {
-		blockAsString := fmt.Sprint(b)
-		hash := fmt.Sprintf("%x", sha256.Sum256([]byte(blockAsString))) // 해시화하고서 []byte형태로 나온걸 hexa화함으로써 32bit hash생성
-		fmt.Printf("block as string: %s\nHash: %s\nTarget: %s\nNonce: %d\n\n", blockAsString, hash, target, b.Nonce)
+		b.Timestamp = int(time.Now().Unix())
+		hash := utils.Hash(b)
 		if strings.HasPrefix(hash, target) {
 			b.Hash = hash
 			break
@@ -62,9 +59,10 @@ func createBlock(data string, prevHash string, height int) *Block {
 		Hash:       "",
 		PrevHash:   prevHash,
 		Height:     height,
-		Difficulty: difficulty,
+		Difficulty: Blockchain().difficulty(),
 		Nonce:      0,
 	}
+
 	block.mine()
 	block.persist()
 	return block

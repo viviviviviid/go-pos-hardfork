@@ -8,9 +8,15 @@ import (
 	"github.com/viviviviviid/go-coin/utils"
 )
 
+const (
+	defaultDifficulty  int = 2
+	difficultyInterval int = 5
+)
+
 type blockchain struct {
-	NewestHash string `json:"newestHash"`
-	Height     int    `json:"height"`
+	NewestHash        string `json:"newestHash"`
+	Height            int    `json:"height"`
+	CurrentDifficulty int    `json:"currentDifficulty"`
 }
 
 var b *blockchain
@@ -46,10 +52,22 @@ func (b *blockchain) Blocks() []*Block {
 	return blocks // 모든 블록이 담긴 slice를 반환
 }
 
+func (b *blockchain) difficulty() int {
+	if b.Height == 0 {
+		return defaultDifficulty
+	} else if b.Height%difficultyInterval == 0 {
+		// recalculate the difficulty
+	} else {
+		return b.CurrentDifficulty
+	}
+}
+
 func Blockchain() *blockchain {
 	if b == nil {
 		once.Do(func() {
-			b = &blockchain{"", 0} // 새로 만든 텅빈 블록체인
+			b = &blockchain{
+				Height: 0,
+			} // 새로 만든 텅빈 블록체인
 			checkpoint := db.Checkpoint()
 			// search for checkpoint on the db
 			if checkpoint == nil {
