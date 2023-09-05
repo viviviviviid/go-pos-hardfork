@@ -1,11 +1,11 @@
 http://localhost:4000/
 ###
+http://localhost:4000/status
+###
 http://localhost:4000/blocks
 ###
 POST http://localhost:4000/blocks
 
 {
-  "message": "Data for my block"
+    "message": "Mine me!"
 }
-###
-http://localhost:4000/blocks/110e8eb40de97b0929e53a3b0cd2d697a4bd25a38fe1a5f069d6d35a40976e17

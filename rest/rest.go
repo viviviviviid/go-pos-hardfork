@@ -47,6 +47,11 @@ func documentation(rw http.ResponseWriter, r *http.Request) {
 			Description: "See Documentation",
 		},
 		{
+			URL:         url("/status"),
+			Method:      "GET",
+			Description: "See the Status of the Blockchain",
+		},
+		{
 			URL:         url("/blocks"),
 			Method:      "GET",
 			Description: "See All Block",
@@ -62,16 +67,13 @@ func documentation(rw http.ResponseWriter, r *http.Request) {
 			Description: "See A Block",
 		},
 	}
-	// b, err := json.Marshal(data)                        // struct 데이터를 json으로 변환 -> 하지만 byte slice 또는 error로 return됨
-	// utils.HandleErr(err)                                // 직접 만든 에러 처리 메서드
-	// fmt.Fprintf(rw, "%s", b)
-	json.NewEncoder(rw).Encode(data) // 윗 세줄과 같은 코드
+	utils.HandleErr(json.NewEncoder(rw).Encode(data))
 }
 
 func blocks(rw http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET": // http://localhost:4000/blocks 에 들어갔을때
-		json.NewEncoder(rw).Encode(blockchain.Blockchain().Blocks())
+		utils.HandleErr(json.NewEncoder(rw).Encode(blockchain.Blockchain().Blocks()))
 		// Encode가 Marshall의 일을 해주고, 결과를 ResponseWrite에 작성
 	case "POST":
 		var addBlockBody addBlockBody
@@ -88,11 +90,15 @@ func block(rw http.ResponseWriter, r *http.Request) {
 	// error handling
 	encoder := json.NewEncoder(rw)
 	if err == blockchain.ErrNotFound {
-		encoder.Encode(errorResponse{fmt.Sprint(err)})
+		utils.HandleErr(encoder.Encode(errorResponse{fmt.Sprint(err)}))
 	} else {
-		encoder.Encode(block)
+		utils.HandleErr(encoder.Encode(block))
 	}
 
+}
+
+func status(rw http.ResponseWriter, r *http.Request) {
+	utils.HandleErr(json.NewEncoder(rw).Encode(blockchain.Blockchain()))
 }
 
 func jsonContentTypeMiddleware(next http.Handler) http.Handler { //
@@ -107,6 +113,7 @@ func Start(aPort int) {
 	router := mux.NewRouter()             // Gorilla Dependecy
 	router.Use(jsonContentTypeMiddleware) // 모든 라우터가 이 middleware사용
 	router.HandleFunc("/", documentation).Methods("GET")
+	router.HandleFunc("/status", status)
 	router.HandleFunc("/blocks", blocks).Methods("GET", "POST")
 	router.HandleFunc("/blocks/{hash:[a-f0-9]+}", block).Methods("GET") // hash: hexadecimal 타입 // [a-f0-9] 이렇게해야 둘다 받을 수 있음
 	// Gorilla Mux 공식문서에 나와있는대로
