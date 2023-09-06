@@ -13,7 +13,7 @@ POST http://localhost:4000/transactions
 
 {
     "to":"lynn",
-    "amount":80
+    "amount":30
 }
 ###
 http://localhost:4000/mempool
