@@ -27,6 +27,11 @@ type urlDescription struct {
 	Payload     string `json:"payload, omitempty"` // omitempty 옵션은 내용이 없을때 화면에서 생략
 }
 
+type BalanceResponse struct {
+	Address string `json:"address"`
+	Balance int    `json:"balance"`
+}
+
 type errorResponse struct {
 	ErrorMessage string `json:"errorMessage"`
 }
@@ -61,6 +66,11 @@ func documentation(rw http.ResponseWriter, r *http.Request) {
 			URL:         url("/blocks/{hash}"),
 			Method:      "POST",
 			Description: "See A Block",
+		},
+		{
+			URL:         url("/balance/{address}"),
+			Method:      "GET",
+			Description: "Get TxOuts for an address",
 		},
 	}
 	utils.HandleErr(json.NewEncoder(rw).Encode(data))
@@ -102,6 +112,20 @@ func jsonContentTypeMiddleware(next http.Handler) http.Handler { //
 	})
 }
 
+func balance(rw http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	address := vars["address"]
+	total := r.URL.Query().Get("total") // url에 total이 있는지 확인
+	switch total {
+	case "true":
+		amount := blockchain.Blockchain().BalanceByAddress(address)
+		json.NewEncoder(rw).Encode(BalanceResponse{address, amount})
+	default:
+		utils.HandleErr(json.NewEncoder(rw).Encode(blockchain.Blockchain().TxOutsByAddress(address)))
+	}
+
+}
+
 func Start(aPort int) {
 	port = fmt.Sprintf(":%d", aPort)
 	router := mux.NewRouter()             // Gorilla Dependecy
@@ -110,6 +134,7 @@ func Start(aPort int) {
 	router.HandleFunc("/status", status)
 	router.HandleFunc("/blocks", blocks).Methods("GET", "POST")
 	router.HandleFunc("/blocks/{hash:[a-f0-9]+}", block).Methods("GET") // hash: hexadecimal 타입 // [a-f0-9] 이렇게해야 둘다 받을 수 있음
+	router.HandleFunc("/balance/{address}", balance)
 	// Gorilla Mux 공식문서에 나와있는대로
 	fmt.Printf("Listening on http://localhost%s\n", port)
 	log.Fatal(http.ListenAndServe(port, router))
