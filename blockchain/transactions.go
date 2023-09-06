@@ -10,6 +10,12 @@ const (
 	minerReward int = 50
 )
 
+type mempool struct {
+	Txs []*Tx
+}
+
+var mempool
+
 type Tx struct {
 	Id        string   `json:"id"`
 	Timestamp int      `json:"timestamp"`
