@@ -1,7 +1,6 @@
 package blockchain
 
 import (
-	"errors"
 	"time"
 
 	"github.com/viviviviviid/go-coin/utils"
@@ -30,8 +29,9 @@ func (t *Tx) getId() {
 }
 
 type TxIn struct {
-	Owner  string `json:"owner"`
-	Amount int    `json:"amount"`
+	TxID  string `json:"txId"`
+	Index int    `json:"index"`
+	Owner string `json:"owner"`
 }
 
 type TxOut struct {
@@ -39,9 +39,15 @@ type TxOut struct {
 	Amount int    `json:"amount"`
 }
 
+type URxOut struct {
+	TxID   string
+	Index  int
+	Amount int
+}
+
 func makeCoinbaseTx(address string) *Tx { // 채굴자를 주소로 삼는 코인베이스 거래내역을 생성해서 Tx 포인터를 반환
 	txIns := []*TxIn{
-		{"COINBASE", minerReward}, // 소유주는 채굴자
+		{"", -1, "COINBASE"}, // 소유주는 채굴자
 	}
 	txOuts := []*TxOut{
 		{address, minerReward},
@@ -57,36 +63,7 @@ func makeCoinbaseTx(address string) *Tx { // 채굴자를 주소로 삼는 코�
 }
 
 func makeTx(from, to string, amount int) (*Tx, error) {
-	if Blockchain().BalanceByAddress(from) < amount { // 잔금이 보내고 싶은 금액보다 적다면
-		return nil, errors.New("not enough money")
-	}
-	var txIns []*TxIn
-	var txOuts []*TxOut
-	total := 0
-	oldTxOuts := Blockchain().TxOutsByAddress(from) // 이전에 채굴 또는 receive을 통해 생긴 txOut -> 그게 내 돈
-	for _, txOut := range oldTxOuts {
-		if total > amount { // 지불할 돈이 충분
-			break
-		}
-		txIn := &TxIn{txOut.Owner, txOut.Amount}
-		txIns = append(txIns, txIn)
-		total += txOut.Amount
-	}
-	change := total - amount
-	if change != 0 { // 딱떨어지지 않는다면 거스름돈 존재
-		changeTxOut := &TxOut{from, change}
-		txOuts = append(txOuts, changeTxOut)
-	}
-	txOut := &TxOut{to, amount} // from이 to에게
-	txOuts = append(txOuts, txOut)
-	tx := &Tx{
-		Id:        "",
-		Timestamp: int(time.Now().Unix()),
-		TxIns:     txIns,
-		TxOuts:    txOuts,
-	}
-	tx.getId()
-	return tx, nil
+
 }
 
 func (m *mempool) AddTx(to string, amount int) error { // mempool에 트랜잭션을 추가
@@ -100,7 +77,7 @@ func (m *mempool) AddTx(to string, amount int) error { // mempool에 트랜잭�
 
 func (m *mempool) TxToConfirm() []*Tx {
 	coinbase := makeCoinbaseTx("vivid")
-	txs := m.Txs
+	txs := m.Txs // 블록당 트랜잭션 포함 수가 정해져있지않고, 매번 mempool에 있는 tx들을 전부 가져옴
 	txs = append(txs, coinbase)
 	m.Txs = nil
 	return txs
