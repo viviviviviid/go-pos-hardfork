@@ -46,6 +46,17 @@ type UTxOut struct {
 	Amount int
 }
 
+func isOnMempool(uTxOut *UTxOut) bool {
+	// mempool에 있는 트랜잭션의 input중에, uTxOut와 같은 트랜잭션 ID와 index를 가지고있는 항목이 있는지 검사
+	exists := false
+	for _, tx := range Mempool.Txs {
+		for _, input := range tx.TxIns {
+			exists = input.TxID == uTxOut.TxID && input.Index == uTxOut.Index
+		}
+	}
+	return exists
+}
+
 func makeCoinbaseTx(address string) *Tx { // 채굴자를 주소로 삼는 코인베이스 거래내역을 생성해서 Tx 포인터를 반환
 	txIns := []*TxIn{
 		{"", -1, "COINBASE"}, // 소유주는 채굴자

@@ -96,7 +96,10 @@ func (b *blockchain) UTxOutsByAddress(address string) []*UTxOut { // Unspent Tx 
 				if output.Owner == address {
 					if _, ok := creatorTxs[tx.ID]; !ok { // ok는 이 map안에 값의 유무 bool
 						// input으로 사용하지 않은 트랜잭션 output
-						uTxOuts = append(uTxOuts, &UTxOut{tx.ID, index, output.Amount})
+						uTxOut := &UTxOut{tx.ID, index, output.Amount}
+						if !isOnMempool(uTxOut) { // UTXO의 output을 확인해서, mempool에 있는지 확인
+							uTxOuts = append(uTxOuts, uTxOut)
+						}
 						// 결론 : unspent transaction output을 생성할때는, 어떤 input에서라도 참조가 되지 않은 경우
 					}
 				}
