@@ -84,7 +84,7 @@ func documentation(rw http.ResponseWriter, r *http.Request) {
 func blocks(rw http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET": // http://localhost:4000/blocks 에 들어갔을때
-		utils.HandleErr(json.NewEncoder(rw).Encode(blockchain.Blockchain().Blocks()))
+		utils.HandleErr(json.NewEncoder(rw).Encode(blockchain.Blocks(blockchain.Blockchain())))
 		// Encode가 Marshall의 일을 해주고, 결과를 ResponseWrite에 작성
 	case "POST":
 		blockchain.Blockchain().AddBlock()
@@ -123,10 +123,10 @@ func balance(rw http.ResponseWriter, r *http.Request) {
 	total := r.URL.Query().Get("total") // url에 total이 있는지 확인
 	switch total {
 	case "true":
-		amount := blockchain.Blockchain().BalanceByAddress(address)
+		amount := blockchain.BalanceByAddress(address, blockchain.Blockchain())
 		json.NewEncoder(rw).Encode(BalanceResponse{address, amount})
 	default:
-		utils.HandleErr(json.NewEncoder(rw).Encode(blockchain.Blockchain().UTxOutsByAddress(address)))
+		utils.HandleErr(json.NewEncoder(rw).Encode(blockchain.UTxOutsByAddress(address, blockchain.Blockchain())))
 	}
 }
 
