@@ -29,7 +29,7 @@ func (t *Tx) getId() {
 }
 
 type TxIn struct {
-	TxID  string `json:"txId"`
+	TxID  string `json:"txId"` // TxID와 Index는, 어떤 트랜잭션이 지금 input을 생성한 output을 가지고 있는지 알려줌
 	Index int    `json:"index"`
 	Owner string `json:"owner"`
 }
@@ -39,7 +39,7 @@ type TxOut struct {
 	Amount int    `json:"amount"`
 }
 
-type URxOut struct {
+type UTxOut struct {
 	TxID   string
 	Index  int
 	Amount int

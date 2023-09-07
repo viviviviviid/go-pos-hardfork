@@ -81,13 +81,36 @@ func (b *blockchain) difficulty() int {
 	}
 }
 
-func (b *blockchain) TxOutsByAddress(address string) []*TxOut {
+// input으로 사용되지 않은 output들을 넘겨주는 함수
+func (b *blockchain) UTxOutsByAddress(address string) []*TxOut { // Unspent Tx Output => UTXO ㅋㅋㅋㅋㅋ 이거였네
+	var uTxOuts []*UTxOut
+	creatorTxs := make(map[string]bool) // 사용한 트랜잭션 output -> map 형태
+	for _, block := range b.Blocks() {  // 모든 블럭
+		for _, tx := range block.Transaction { // 블럭의 모든 트랜잭션
+			for _, input := range tx.TxIns { // 트랜잭션안의 input을 추적
+				if input.Owner == address {
+					creatorTxs[input.TxID] = true // 어떤 트랜잭션이 output을 input으로 사용했는지 bool로 마킹
 
+				}
+			}
+			for index, output := range tx.TxOuts {
+				if output.Owner == address {
+					if _, ok := creatorTxs[tx.Id]; !ok { // ok는 이 map안에 값의 유무 bool
+						// input으로 사용하지 않은 트랜잭션 output
+						uTxOuts = append(uTxOuts, &UTxOut{tx.Id, index, output.Amount})
+						// 결론 : unspent transaction output을 생성할때는, 어떤 input에서라도 참조가 되지 않은 경우
+					}
+				}
+
+			}
+		}
+	}
+	return uTxOuts
 }
 
 func (b *blockchain) BalanceByAddress(address string) int {
 	// TxOutsByAddress로부터 합산된 잔액으로 만들어주는 함수
-	txOuts := b.TxOutsByAddress(address)
+	txOuts := b.UTxOutsByAddress(address)
 	var amount int
 	for _, txOut := range txOuts {
 		amount += txOut.Amount
