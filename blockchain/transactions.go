@@ -1,6 +1,7 @@
 package blockchain
 
 import (
+	"errors"
 	"time"
 
 	"github.com/viviviviviid/go-coin/utils"
@@ -18,14 +19,14 @@ type mempool struct {
 var Mempool *mempool = &mempool{}
 
 type Tx struct {
-	Id        string   `json:"id"`
+	ID        string   `json:"id"`
 	Timestamp int      `json:"timestamp"`
 	TxIns     []*TxIn  `json:"txIns"`
 	TxOuts    []*TxOut `json:"txOuts"`
 }
 
 func (t *Tx) getId() {
-	t.Id = utils.Hash(t)
+	t.ID = utils.Hash(t)
 }
 
 type TxIn struct {
@@ -53,7 +54,7 @@ func makeCoinbaseTx(address string) *Tx { // 채굴자를 주소로 삼는 코�
 		{address, minerReward},
 	}
 	tx := Tx{
-		Id:        "",
+		ID:        "",
 		Timestamp: int(time.Now().Unix()),
 		TxIns:     txIns,
 		TxOuts:    txOuts,
@@ -63,7 +64,35 @@ func makeCoinbaseTx(address string) *Tx { // 채굴자를 주소로 삼는 코�
 }
 
 func makeTx(from, to string, amount int) (*Tx, error) {
-
+	if Blockchain().BalanceByAddress(from) < amount {
+		return nil, errors.New("not enough money")
+	}
+	var txOuts []*TxOut
+	var txIns []*TxIn
+	total := 0 // UTXO의 잔액 저장할 곳
+	uTxOuts := Blockchain().UTxOutsByAddress(from)
+	for _, uTxOut := range uTxOuts {
+		if total > amount {
+			break
+		}
+		txIn := &TxIn{uTxOut.TxID, uTxOut.Index, from}
+		txIns = append(txIns, txIn)
+		total += uTxOut.Amount
+	}
+	if change := total - amount; change != 0 { // change: 거스름돈 // change가 0이 아니라면 거슬러줘야함
+		changeTxOut := &TxOut{from, change} // 거스름돈 반환
+		txOuts = append(txOuts, changeTxOut)
+	}
+	txOut := &TxOut{to, amount} // 받을사람으르 위한 트랜잭션 output
+	txOuts = append(txOuts, txOut)
+	tx := &Tx{
+		ID:        "",
+		Timestamp: int(time.Now().Unix()),
+		TxIns:     txIns,
+		TxOuts:    txOuts,
+	}
+	tx.getId()
+	return tx, nil
 }
 
 func (m *mempool) AddTx(to string, amount int) error { // mempool에 트랜잭션을 추가
