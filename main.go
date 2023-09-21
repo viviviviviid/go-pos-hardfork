@@ -1,13 +1,9 @@
 package main
 
-import (
-	"github.com/viviviviviid/go-coin/cli"
-	"github.com/viviviviviid/go-coin/db"
-)
+import "github.com/viviviviviid/go-coin/wallet"
 
 func main() {
-	defer db.Close()
-	cli.Start()
+	wallet.Start()
 }
 
 // Mux : Multiplexer
