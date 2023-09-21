@@ -17,6 +17,8 @@ const (
 
 var db *bolt.DB
 
+
+
 func DB() *bolt.DB {
 	if db == nil {
 		dbPointer, err := bolt.Open(dbName, 0600, nil) // Bolt DB 시작, 이름도 생성
