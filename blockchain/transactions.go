@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/viviviviviid/go-coin/utils"
+	"github.com/viviviviviid/go-coin/wallet"
 )
 
 const (
@@ -111,7 +112,7 @@ func makeTx(from, to string, amount int) (*Tx, error) {
 }
 
 func (m *mempool) AddTx(to string, amount int) error { // mempool에 트랜잭션을 추가
-	tx, err := makeTx("vivid", to, amount)
+	tx, err := makeTx(wallet.Wallet().Address, to, amount)
 	if err != nil {
 		return err
 	}
@@ -120,7 +121,7 @@ func (m *mempool) AddTx(to string, amount int) error { // mempool에 트랜잭�
 }
 
 func (m *mempool) TxToConfirm() []*Tx {
-	coinbase := makeCoinbaseTx("vivid")
+	coinbase := makeCoinbaseTx(wallet.Wallet().Address)
 	txs := m.Txs // 블록당 트랜잭션 포함 수가 정해져있지않고, 매번 mempool에 있는 tx들을 전부 가져옴
 	txs = append(txs, coinbase)
 	m.Txs = nil
