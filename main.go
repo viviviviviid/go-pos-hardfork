@@ -3,7 +3,7 @@ package main
 import "github.com/viviviviviid/go-coin/wallet"
 
 func main() {
-	wallet.Start()
+	wallet.Wallet()
 }
 
 // Mux : Multiplexer
