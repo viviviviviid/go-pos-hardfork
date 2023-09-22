@@ -1,8 +1,10 @@
 package wallet
 
 import (
+	"crypto/ecdsa"
 	"crypto/x509"
 	"encoding/hex"
+	"fmt"
 	"math/big"
 
 	"github.com/viviviviviid/go-coin/utils"
@@ -22,7 +24,7 @@ func Start() {
 	// 파일로 저장되기 떄문에 수정될 가능성이 있기 때문
 	utils.HandleErr(err)
 
-	restoredKey, err := x509.ParseECPrivateKey(privByte) // bytes를 받아서 비공개키를 반환
+	private, err := x509.ParseECPrivateKey(privByte) // bytes를 받아서 비공개키를 반환
 	utils.HandleErr(err)
 
 	sigBytes, err := hex.DecodeString(signature)
@@ -33,10 +35,12 @@ func Start() {
 	bigR.SetBytes(rBytes)
 	bigS.SetBytes(sBytes)
 
-}
+	hashBytes, err := hex.DecodeString(hashedMessage)
 
-// 한 일 : 비공개키의 문자열을 가져와서, hex 패키지의 DecodeString를 이용하여 변환하였고
-// 그 뒤, 저번에 비공개키를 byte로 변환했던 그 패키지를 다시 사용해서, byte를 다시 비공개키로 변경
-// 비공개키를 복구한 다음에, 서명을 복구, 서명은 두 slice의 조합
-// 서명의 byte를 받아왔고, r과 s로 분리
-// big.Int 로 생성해서 byte값으로 set했음
+	utils.HandleErr(err)
+
+	ok := ecdsa.Verify(&private.PublicKey, hashBytes, &bigR, &bigS)
+
+	fmt.Println(ok)
+
+}
