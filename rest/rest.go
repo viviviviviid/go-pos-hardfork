@@ -9,6 +9,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/viviviviviid/go-coin/blockchain"
 	"github.com/viviviviviid/go-coin/utils"
+	"github.com/viviviviviid/go-coin/wallet"
 )
 
 var port string
@@ -24,12 +25,16 @@ type urlDescription struct {
 	URL         url    `json:"url"` // json형태로 웹에 출력된다면, 별명상태로 출력 -> 소문자로 출력시키는 방법
 	Method      string `json:"method"`
 	Description string `json:"description"`
-	Payload     string `json:"payload, omitempty"` // omitempty 옵션은 내용이 없을때 화면에서 생략
+	Payload     string `json:"payload,omitempty"` // omitempty 옵션은 내용이 없을때 화면에서 생략
 }
 
 type BalanceResponse struct {
 	Address string `json:"address"`
 	Balance int    `json:"balance"`
+}
+
+type myWalletResponse struct {
+	Address string `json:"address"`
 }
 
 type errorResponse struct {
@@ -139,9 +144,16 @@ func transactions(rw http.ResponseWriter, r *http.Request) {
 	utils.HandleErr(json.NewDecoder(r.Body).Decode(&payload))
 	err := blockchain.Mempool.AddTx(payload.To, payload.Amount)
 	if err != nil {
-		json.NewEncoder(rw).Encode(errorResponse{"not enough funds"})
+		rw.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(rw).Encode(errorResponse{err.Error()})
+		return
 	}
 	rw.WriteHeader(http.StatusCreated)
+}
+
+func myWallet(rw http.ResponseWriter, r *http.Request) {
+	address := wallet.Wallet().Address
+	json.NewEncoder(rw).Encode(myWalletResponse{Address: address})
 }
 
 func Start(aPort int) {
@@ -152,8 +164,9 @@ func Start(aPort int) {
 	router.HandleFunc("/status", status)
 	router.HandleFunc("/blocks", blocks).Methods("GET", "POST")
 	router.HandleFunc("/blocks/{hash:[a-f0-9]+}", block).Methods("GET") // hash: hexadecimal 타입 // [a-f0-9] 이렇게해야 둘다 받을 수 있음
-	router.HandleFunc("/balance/{address}", balance)
-	router.HandleFunc("/mempool", mempool)
+	router.HandleFunc("/balance/{address}", balance).Methods("GET")
+	router.HandleFunc("/mempool", mempool).Methods("GET")
+	router.HandleFunc("/wallet", myWallet).Methods("GET")
 	router.HandleFunc("/transactions", transactions).Methods("POST")
 	// Gorilla Mux 공식문서에 나와있는대로
 	fmt.Printf("Listening on http://localhost%s\n", port)
