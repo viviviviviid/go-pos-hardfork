@@ -58,7 +58,16 @@ func (t *Tx) sign() {
 func validate(tx *Tx) bool { // 그래서 output을 보유 중인지 검증해야함
 	valid := true
 	for _, txIn := range tx.TxIns {
-		prevTx := FindTxs(Blockchain(), txIn.TxID) // 여기에서 txIn.TxID는 지금 input으로 쓰이는 output을 만든 트잭. 즉 지금 트잭을 만들어준 이전 트잭
+		prevTx := FindTx(Blockchain(), txIn.TxID) // 여기에서 txIn.TxID는 지금 input으로 쓰이는 output을 만든 트잭. 즉 지금 트잭을 만들어준 이전 트잭
+		if prevTx == nil {                        // 이전 트잭이 없다면, 이걸 생성한 사람은 우리 체인의 코인을 갖고있지 않다는 뜻
+			valid = false // 즉 유효하지 않아서 loop 탈출
+			break
+		}
+		address := prevTx.TxOuts[txIn.Index].Address
+		valid = wallet.Verify(txIn.Signature, tx.ID, address) // address로 publicKey를 복구할 수 있기 때문
+		if !valid {
+			break
+		}
 	}
 	return valid
 }
@@ -95,9 +104,12 @@ func makeCoinbaseTx(address string) *Tx { // 채굴자를 주소로 삼는 코�
 	return &tx
 }
 
+var ErrorNoMoney = errors.New("not enough money")
+var ErrorNotValid = errors.New("Tx Invalid")
+
 func makeTx(from, to string, amount int) (*Tx, error) {
 	if BalanceByAddress(from, Blockchain()) < amount {
-		return nil, errors.New("not enough money")
+		return nil, ErrorNoMoney
 	}
 	var txOuts []*TxOut
 	var txIns []*TxIn
@@ -125,6 +137,10 @@ func makeTx(from, to string, amount int) (*Tx, error) {
 	}
 	tx.getId()
 	tx.sign()
+	valid := validate(tx)
+	if !valid {
+		return nil, ErrorNotValid
+	}
 	return tx, nil
 }
 

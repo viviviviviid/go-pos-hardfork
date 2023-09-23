@@ -62,7 +62,7 @@ func Txs(b *blockchain) []*Tx { // 모든 트랜잭션을 찾아주는 함수
 	return txs
 }
 
-func FindTxs(b *blockchain, targetID string) *Tx { // 특정 트랜잭션 하나를 찾아주는 함수 // 이걸 이용해서 validate 함수 내에서 이전 트잭을 찾아낼 것임
+func FindTx(b *blockchain, targetID string) *Tx { // 특정 트랜잭션 하나를 찾아주는 함수 // 이걸 이용해서 validate 함수 내에서 이전 트잭을 찾아낼 것임
 	for _, tx := range Txs(b) {
 		if tx.ID == targetID {
 			return tx
@@ -104,12 +104,15 @@ func UTxOutsByAddress(address string, b *blockchain) []*UTxOut { // Unspent Tx O
 	for _, block := range Blocks(b) {   // 모든 블럭
 		for _, tx := range block.Transaction { // 블럭의 모든 트랜잭션
 			for _, input := range tx.TxIns { // 트랜잭션안의 input을 추적
-				if input.Owner == address {
+				if input.Signature == "COINBASE" {
+					break
+				}
+				if FindTx(b, input.TxID).TxOuts[input.Index].Address == address {
 					creatorTxs[input.TxID] = true // 어떤 트랜잭션이 output을 input으로 사용했는지 bool로 마킹
 				}
 			}
 			for index, output := range tx.TxOuts {
-				if output.Owner == address {
+				if output.Address == address {
 					if _, ok := creatorTxs[tx.ID]; !ok { // ok는 이 map안에 값의 유무 bool
 						// input으로 사용하지 않은 트랜잭션 output
 						uTxOut := &UTxOut{tx.ID, index, output.Amount}
