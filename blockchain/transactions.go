@@ -26,25 +26,41 @@ type Tx struct {
 	TxOuts    []*TxOut `json:"txOuts"`
 }
 
-func (t *Tx) getId() {
-	t.ID = utils.Hash(t)
-}
-
 type TxIn struct {
-	TxID  string `json:"txId"` // TxID와 Index는, 어떤 트랜잭션이 지금 input을 생성한 output을 가지고 있는지 알려줌
-	Index int    `json:"index"`
-	Owner string `json:"owner"`
+	TxID      string `json:"txId"` // TxID와 Index는, 어떤 트랜잭션이 지금 input을 생성한 output을 가지고 있는지 알려줌
+	Index     int    `json:"index"`
+	Signature string `json:"signature"`
 }
 
 type TxOut struct {
-	Owner  string `json:"owner"`
-	Amount int    `json:"amount"`
+	Address string `json:"address"`
+	Amount  int    `json:"amount"`
 }
 
 type UTxOut struct {
 	TxID   string
 	Index  int
 	Amount int
+}
+
+func (t *Tx) getId() {
+	t.ID = utils.Hash(t)
+}
+
+func (t *Tx) sign() {
+	for _, txIn := range t.TxIns { // 이 트랜잭션의 모든 트랜잭션 input들에 대해 서명을 저장
+		txIn.Signature = wallet.Sign(t.ID, wallet.Wallet()) // 트랜잭션 id에 서명 // t.ID는 Tx struct를 해쉬화한 값
+	}
+}
+
+// 트랜잭션 만든 사람을 검증 // 즉 transaction output을 소유한 사람을 검증
+// output으로 트잭을 만들 수 있기 때문 -> 왜냐면 output이 다음 트잭의 input이라서
+func validate(tx *Tx) bool { // 그래서 output을 보유 중인지 검증해야함
+	valid := true
+	for _, txIn := range tx.TxIns {
+		prevTx := FindTxs(Blockchain(), txIn.TxID) // 여기에서 txIn.TxID는 지금 input으로 쓰이는 output을 만든 트잭. 즉 지금 트잭을 만들어준 이전 트잭
+	}
+	return valid
 }
 
 func isOnMempool(uTxOut *UTxOut) bool {
@@ -108,6 +124,7 @@ func makeTx(from, to string, amount int) (*Tx, error) {
 		TxOuts:    txOuts,
 	}
 	tx.getId()
+	tx.sign()
 	return tx, nil
 }
 

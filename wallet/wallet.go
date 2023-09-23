@@ -49,18 +49,21 @@ func restoreKey() (key *ecdsa.PrivateKey) { // *ecdsa.PrivateKey 형식의 key�
 	return // 함수의 반환 구조에서 뭘 반환할지 알려줬으므로, return 다음에 뭔가를 안써줘도 됨
 } // return에 비어있는지 아닌지 확인해야하므로 긴 함수에서는 귀찮음이 가중될 수 있음 -> 알고만 있기
 
-func aFromK(key *ecdsa.PrivateKey) string {
-	z := append(key.X.Bytes(), key.Y.Bytes()...)
+func encodeBigInts(a, b []byte) string {
+	z := append(a, b...)
 	return fmt.Sprintf("%x", z)
 }
 
-func sign(payload string, w *wallet) string {
-	payloadAsBytes, err := hex.DecodeString(payload)
+func aFromK(key *ecdsa.PrivateKey) string {
+	return encodeBigInts(key.X.Bytes(), key.Y.Bytes())
+}
+
+func Sign(payload string, w *wallet) string {
+	payloadAsBytes, err := hex.DecodeString(payload) // []bytes()를 안쓰는 이유는 길이 관련으로 오류가 생기는걸 확인하기위해
 	utils.HandleErr(err)
 	r, s, err := ecdsa.Sign(rand.Reader, w.privateKey, payloadAsBytes)
 	utils.HandleErr(err)
-	signature := append(r.Bytes(), s.Bytes()...)
-	return fmt.Sprintf("%x", signature)
+	return encodeBigInts(r.Bytes(), s.Bytes())
 }
 
 func restoreBigInts(payload string) (*big.Int, *big.Int, error) {

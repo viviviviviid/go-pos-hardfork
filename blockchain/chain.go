@@ -3,7 +3,6 @@ package blockchain
 import (
 	"sync"
 
-	
 	"github.com/viviviviviid/go-coin/db"
 	"github.com/viviviviviid/go-coin/utils"
 )
@@ -53,6 +52,23 @@ func Blocks(b *blockchain) []*Block { // struct를 변화시키지 않으므로,
 		}
 	}
 	return blocks // 모든 블록이 담긴 slice를 반환
+}
+
+func Txs(b *blockchain) []*Tx { // 모든 트랜잭션을 찾아주는 함수
+	var txs []*Tx
+	for _, block := range Blocks(b) {
+		txs = append(txs, block.Transaction...)
+	}
+	return txs
+}
+
+func FindTxs(b *blockchain, targetID string) *Tx { // 특정 트랜잭션 하나를 찾아주는 함수 // 이걸 이용해서 validate 함수 내에서 이전 트잭을 찾아낼 것임
+	for _, tx := range Txs(b) {
+		if tx.ID == targetID {
+			return tx
+		}
+	}
+	return nil
 }
 
 func recalculateDifficulty(b *blockchain) int {
