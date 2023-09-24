@@ -8,10 +8,12 @@ import (
 	"github.com/viviviviviid/go-coin/wallet"
 )
 
+// minerReward는 채굴자에게 주어지는 보상입니다.
 const (
 	minerReward int = 50
 )
 
+// mempool은 대기 중인 트랜잭션들을 저장합니다.
 type mempool struct {
 	Txs []*Tx
 }
@@ -37,22 +39,26 @@ type TxOut struct {
 	Amount  int    `json:"amount"`
 }
 
+// UTxOut는 사용되지 않은 트랜잭션 출력을 나타냅니다.
 type UTxOut struct {
 	TxID   string
 	Index  int
 	Amount int
 }
 
+// getId 메서드는 트랜잭션 ID를 설정합니다. 트랜잭션 struct를 해시화 한걸 id에 삽입
 func (t *Tx) getId() {
 	t.ID = utils.Hash(t)
 }
 
+// sign 메서드는 모든 트랜잭션 입력에 대해 서명을 저장합니다.
 func (t *Tx) sign() {
 	for _, txIn := range t.TxIns { // 이 트랜잭션의 모든 트랜잭션 input들에 대해 서명을 저장
 		txIn.Signature = wallet.Sign(t.ID, wallet.Wallet()) // 트랜잭션 id에 서명 // t.ID는 Tx struct를 해쉬화한 값
 	}
 }
 
+// validate 함수는 트랜잭션의 유효성을 검증합니다.
 // 트랜잭션 만든 사람을 검증 // 즉 transaction output을 소유한 사람을 검증
 // output으로 트잭을 만들 수 있기 때문 -> 왜냐면 output이 다음 트잭의 input이라서
 func validate(tx *Tx) bool { // 그래서 output을 보유 중인지 검증해야함
@@ -72,6 +78,7 @@ func validate(tx *Tx) bool { // 그래서 output을 보유 중인지 검증해�
 	return valid
 }
 
+// isOnMempool 함수는 uTxOut가 mempool에 있는지 확인합니다.
 func isOnMempool(uTxOut *UTxOut) bool {
 	// mempool에 있는 트랜잭션의 input중에, uTxOut와 같은 트랜잭션 ID와 index를 가지고있는 항목이 있는지 검사
 	exists := false
@@ -87,7 +94,9 @@ Outer:
 	return exists
 }
 
-func makeCoinbaseTx(address string) *Tx { // 채굴자를 주소로 삼는 코인베이스 거래내역을 생성해서 Tx 포인터를 반환
+// 블록 채굴 시
+// 채굴자를 주소로 삼는 코인베이스 거래내역을 생성해서 Tx 포인터를 반환
+func makeCoinbaseTx(address string) *Tx {
 	txIns := []*TxIn{
 		{"", -1, "COINBASE"}, // 소유주는 채굴자
 	}
@@ -107,6 +116,7 @@ func makeCoinbaseTx(address string) *Tx { // 채굴자를 주소로 삼는 코�
 var ErrorNoMoney = errors.New("not enough money")
 var ErrorNotValid = errors.New("Tx Invalid")
 
+// makeTx 함수는 일반 트랜잭션을 생성합니다.
 func makeTx(from, to string, amount int) (*Tx, error) {
 	if BalanceByAddress(from, Blockchain()) < amount {
 		return nil, ErrorNoMoney
@@ -144,7 +154,8 @@ func makeTx(from, to string, amount int) (*Tx, error) {
 	return tx, nil
 }
 
-func (m *mempool) AddTx(to string, amount int) error { // mempool에 트랜잭션을 추가
+// AddTx 메서드는 mempool에 트랜잭션을 추가
+func (m *mempool) AddTx(to string, amount int) error {
 	tx, err := makeTx(wallet.Wallet().Address, to, amount)
 	if err != nil {
 		return err
@@ -153,6 +164,7 @@ func (m *mempool) AddTx(to string, amount int) error { // mempool에 트랜잭�
 	return nil
 }
 
+// TxToConfirm 메서드는 확인할 트랜잭션들을 반환
 func (m *mempool) TxToConfirm() []*Tx {
 	coinbase := makeCoinbaseTx(wallet.Wallet().Address)
 	txs := m.Txs // 블록당 트랜잭션 포함 수가 정해져있지않고, 매번 mempool에 있는 tx들을 전부 가져옴

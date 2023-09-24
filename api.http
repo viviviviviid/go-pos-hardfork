@@ -2,9 +2,9 @@ http://localhost:4000/
 ###
 http://localhost:4000/status
 ###
-http://localhost:4000/balance/3e0b6025f974e1cb940d1756b0e4fd3bd01cc74de4d866fb79584213fd7115e1ce3b24535cb1559edcafd93ebe68583f6a9976abec8adf51bc12267e2b855fed
+http://localhost:4000/balance/727355b19143e84127a936db88579abf674fefba0bedd7f960a1982169caaf1712ef2f5fda1085f094e4385b1075961b14346532a2aa2c239205d63b7573ae51
 ###
-http://localhost:4000/balance/vivid?total=true
+http://localhost:4000/balance/727355b19143e84127a936db88579abf674fefba0bedd7f960a1982169caaf1712ef2f5fda1085f094e4385b1075961b14346532a2aa2c239205d63b7573ae51?total=true
 ###
 http://localhost:4000/blocks
 ###
@@ -16,8 +16,8 @@ POST http://localhost:4000/blocks
 POST http://localhost:4000/transactions
  
 {
-    "to":"lynn",
-    "amount":50
+    "to":"kkk",
+    "amount":30
 }
 ###
 http://localhost:4000/mempool
