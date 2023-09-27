@@ -39,6 +39,7 @@ func persistKey(key *ecdsa.PrivateKey) { // key 저장
 	bytes, err := x509.MarshalECPrivateKey(key) // bytes는 복붙가능하기때문에 변환할 필요없이 파일에 박으면 됨
 	utils.HandleErr(err)
 	err = os.WriteFile(fileName, bytes, 0644) // 0644 : 읽기와 쓰기 허용
+	utils.HandleErr(err)
 }
 
 func restoreKey() (key *ecdsa.PrivateKey) { // *ecdsa.PrivateKey 형식의 key를 선언 및 초기화
