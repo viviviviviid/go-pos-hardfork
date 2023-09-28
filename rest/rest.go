@@ -8,6 +8,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/viviviviviid/go-coin/blockchain"
+	"github.com/viviviviviid/go-coin/p2p"
 	"github.com/viviviviviid/go-coin/utils"
 	"github.com/viviviviviid/go-coin/wallet"
 )
@@ -82,6 +83,11 @@ func documentation(rw http.ResponseWriter, r *http.Request) {
 			Method:      "GET",
 			Description: "Get TxOuts for an address",
 		},
+		{
+			URL:         url("/ws"),
+			Method:      "GET",
+			Description: "Upgrade to WebSockets",
+		},
 	}
 	utils.HandleErr(json.NewEncoder(rw).Encode(data))
 }
@@ -122,6 +128,13 @@ func jsonContentTypeMiddleware(next http.Handler) http.Handler { //
 	})
 }
 
+func loggerMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		fmt.Println(r.URL)
+		next.ServeHTTP(rw, r)
+	})
+}
+
 func balance(rw http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	address := vars["address"]
@@ -158,8 +171,8 @@ func myWallet(rw http.ResponseWriter, r *http.Request) {
 
 func Start(aPort int) {
 	port = fmt.Sprintf(":%d", aPort)
-	router := mux.NewRouter()             // Gorilla Dependecy
-	router.Use(jsonContentTypeMiddleware) // 모든 라우터가 이 middleware사용
+	router := mux.NewRouter()                               // Gorilla Dependecy
+	router.Use(jsonContentTypeMiddleware, loggerMiddleware) // 모든 라우터가 이 middleware사용
 	router.HandleFunc("/", documentation).Methods("GET")
 	router.HandleFunc("/status", status)
 	router.HandleFunc("/blocks", blocks).Methods("GET", "POST")
@@ -168,6 +181,7 @@ func Start(aPort int) {
 	router.HandleFunc("/mempool", mempool).Methods("GET")
 	router.HandleFunc("/wallet", myWallet).Methods("GET")
 	router.HandleFunc("/transactions", transactions).Methods("POST")
+	router.HandleFunc("/ws", p2p.Upgrade).Methods("GET")
 	// Gorilla Mux 공식문서에 나와있는대로
 	fmt.Printf("Listening on http://localhost%s\n", port)
 	log.Fatal(http.ListenAndServe(port, router))
