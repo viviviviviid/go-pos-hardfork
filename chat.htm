@@ -8,6 +8,16 @@
 <body>
   <script>
     const socket = new WebSocket("ws://localhost:4000/ws")
+    socket.addEventListener("close", () => console.log("closed"))
+    setTimeout(() => {
+      socket.send("Hello darling")
+    }, 5000)
+    setTimeout(() => {
+      socket.send("Hello darling")
+    }, 6000)
+    setTimeout(() => {
+      socket.send("Hello darling")
+    }, 8000)
   </script>
 </body>
 </html>
