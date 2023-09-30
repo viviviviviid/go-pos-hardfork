@@ -48,7 +48,7 @@ type addTxPayload struct {
 }
 
 type addPeerPayload struct {
-	port, address string
+	Address, Port string
 }
 
 func (u urlDescription) String() string { // stringer interface는 이렇게 구현해놓은순간부터, URLDescription을 직접 print할경우 return의 내용을 출력해준다.
@@ -178,8 +178,10 @@ func peers(rw http.ResponseWriter, r *http.Request) {
 	case "POST":
 		var paylaod addPeerPayload
 		json.NewDecoder(r.Body).Decode(&paylaod)
-		p2p.AddPeer(paylaod.address, paylaod.port)
+		p2p.AddPeer(paylaod.Address, paylaod.Port)
 		rw.WriteHeader(http.StatusOK)
+	case "GET":
+		json.NewEncoder(rw).Encode(p2p.Peers)
 	}
 }
 
@@ -196,7 +198,7 @@ func Start(aPort int) {
 	router.HandleFunc("/wallet", myWallet).Methods("GET")
 	router.HandleFunc("/transactions", transactions).Methods("POST")
 	router.HandleFunc("/ws", p2p.Upgrade).Methods("GET")
-	router.HandleFunc("/peers", peers).Methods("POST")
+	router.HandleFunc("/peers", peers).Methods("GET", "POST")
 	// Gorilla Mux 공식문서에 나와있는대로
 	fmt.Printf("Listening on http://localhost%s\n", port)
 	log.Fatal(http.ListenAndServe(port, router))
