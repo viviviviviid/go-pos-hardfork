@@ -21,7 +21,6 @@ func Start() {
 	if len(os.Args) == 1 {
 		usage()
 	}
-
 	port := flag.Int("port", 3000, "Set port of the server")
 	mode := flag.String("mode", "rest", "Choose between 'html', 'rest' and 'both' (both mean html and rest)")
 	flag.Parse()
