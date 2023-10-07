@@ -3,6 +3,7 @@ package p2p
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/gorilla/websocket"
 	"github.com/viviviviviid/go-coin/utils"
@@ -13,21 +14,35 @@ var upgrader = websocket.Upgrader{}
 // Upgrade: 프로토콜간의 전환 // 즉 우리는 HTTP에서 WebSocket 통신으로 전환할것임.
 func Upgrade(rw http.ResponseWriter, r *http.Request) {
 	// Port :3000이 :4000에서 온 request를 upgrade 함
+	openPort := r.URL.Query().Get("openPort")           // 링크의 쿼리문을 가져와줌
+	ip := utils.Splitter(r.RemoteAddr, ":", 0)          // RemoteAddr: 우리에게 요청을 보낸 주소를 재공 // 127.0.0.1:57039
 	upgrader.CheckOrigin = func(r *http.Request) bool { // 웹소켓 연결 허가
-		return true
+		return openPort != "" && ip != "" // 공란으로 잘못보낸다면 업그레이드 안함
 	}
 	conn, err := upgrader.Upgrade(rw, r, nil) // 3000번에 저장
 	utils.HandleErr(err)
-	initPeer(conn, "temp", "temp")
+	peer := initPeer(conn, ip, openPort)
+	time.Sleep(20 * time.Second)
+	peer.inbox <- []byte("Hello from 3000!")
 }
 
-func AddPeer(address, port string) { // 서로간에 connection생성, port가 node라고 생각.
+func AddPeer(address, port, openPort string) { // 서로간에 connection생성, port가 node라고 생각.
 	// Port 4000번이 3000으로 upgrade를 요청 // 위 upgrade가 발생하면 우리와 3000번간의 연결이 생성
-	conn, _, err := websocket.DefaultDialer.Dial(fmt.Sprintf("ws://%s:%s/ws", address, port), nil) // 새로운 URL을 call하면 새로운 connection을 생성 -> 전화기의 다이얼 역할
-	// 4000번에 저장
+	conn, _, err := websocket.DefaultDialer.Dial(fmt.Sprintf("ws://%s:%s/ws?openPort=%s", address, port, openPort[1:]), nil) // 새로운 URL을 call하면 새로운 connection을 생성 -> 전화기의 다이얼 역할
 	utils.HandleErr(err)
-	initPeer(conn, address, port)
+	// 4000번에 저장
+	peer := initPeer(conn, address, port)
+	time.Sleep(10 * time.Second)
+	peer.inbox <- []byte("Hello from 4000!")
 }
 
 // Upgrader은 3000번에 저장되는 conn(4000)
 // AddPeer은 4000번에 저장되는 conn(3000)
+
+// 우리 4000번이 쉬고있는 3000번에게 Upgrader로 upgrade를 요청
+// 나중에 누군가가 우리의 peers에 연결하길 원할 수 있으니, openPort 변수로 열려있는 포트를 전달해줘야함
+// 추후 2000번포트가 3000번 포트와 연결을 맺는데, 네트워크를 형성해야하므로 3000번은 현재 연결되어있는 peers들을 알려줌 (ex 우리 4000번)
+// 그렇게 되면, 4000번에 업그레이드 요청을 하도록 만듬
+// 이건 openPort 형태 "ws://%s:%s/ws?openPort=%s"
+
+// Upgrader내의 ip는 -> 업그레이드를 요청하는 ip 또는 주소

@@ -6,6 +6,7 @@ import (
 	"encoding/gob"
 	"fmt"
 	"log"
+	"strings"
 )
 
 func HandleErr(err error) {
@@ -30,4 +31,12 @@ func Hash(i interface{}) string {
 	s := fmt.Sprintf("%v", i) // v: default formmater
 	hash := sha256.Sum256([]byte(s))
 	return fmt.Sprintf("%x", hash)
+}
+
+func Splitter(s string, sep string, index int) string {
+	r := strings.Split(s, sep)
+	if len(r)-1 < index { // 원하는 인덱스보다 길이가 작으면
+		return ""
+	}
+	return r[index]
 }
