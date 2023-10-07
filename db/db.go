@@ -1,8 +1,8 @@
 package db
 
 import (
-	"github.com/boltdb/bolt"
 	"github.com/viviviviviid/go-coin/utils"
+	bolt "go.etcd.io/bbolt"
 )
 
 // bolt는 key와 value만 존재
@@ -16,8 +16,6 @@ const (
 )
 
 var db *bolt.DB
-
-
 
 func DB() *bolt.DB {
 	if db == nil {
