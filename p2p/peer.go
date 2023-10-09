@@ -8,9 +8,9 @@ import (
 )
 
 type peers struct {
-	v map[string]*peer
-	m sync.Mutex // data race를 막는 방법 // 변수 잠그기
-	// 바로 위의 map을 보호하기 위해 struct내부에 넣고 진행
+	v map[string]*peer // value
+	m sync.Mutex       // data race를 막는 방법 // mutex는 mutex가 위치한 struct를 잠금
+	// 바로 위의 map을 보호하기 위해 mutex가 있는 struct 내부에 넣고 진행
 }
 
 var Peers peers = peers{
@@ -40,18 +40,19 @@ func (p *peer) close() {
 	defer Peers.m.Unlock() // 함수 다 끝나고 unlock
 	p.conn.Close()
 	delete(Peers.v, p.key) // golang map 내용 삭제방법
-
 }
 
 func (p *peer) read() {
 	// 에러 발생 시 peer 제거
 	defer p.close() // defer: 함수 종료후 실행되는 코드라인
 	for {
-		_, m, err := p.conn.ReadMessage() // blocking and read msg
+		m := Message{}
+		err := p.conn.ReadJSON(&m) // websocket에서 오는 메세지를 받아서, JSON으로  변환 후, Json으로부터 go로 unmarshal 하게 도와줌
+		// Message의 형식처럼 Kind, Payload로 쪼개져서 저장됨
 		if err != nil {
 			break
 		}
-		fmt.Printf("%s", m)
+		fmt.Print(m.Kind)
 	}
 }
 
