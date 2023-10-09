@@ -29,7 +29,8 @@ func AddPeer(address, port, openPort string) { // 서로간에 connection생성,
 	conn, _, err := websocket.DefaultDialer.Dial(fmt.Sprintf("ws://%s:%s/ws?openPort=%s", address, port, openPort[1:]), nil) // 새로운 URL을 call하면 새로운 connection을 생성 -> 전화기의 다이얼 역할
 	utils.HandleErr(err)
 	// 4000번에 저장
-	initPeer(conn, address, port)
+	p := initPeer(conn, address, port)
+	sendNewestBlock(p)
 }
 
 // Upgrader은 3000번에 저장되는 conn(4000)
