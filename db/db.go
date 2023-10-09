@@ -1,6 +1,9 @@
 package db
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/viviviviviid/go-coin/utils"
 	bolt "go.etcd.io/bbolt"
 )
@@ -9,7 +12,7 @@ import (
 // bolt는 SQL의 Table과 비슷한 bucket을 갖는다
 
 const (
-	dbName       = "blockchain.db"
+	dbName       = "blockchain"
 	dataBucket   = "data"
 	blocksBucket = "blocks"
 	checkpoint   = "checkpoint"
@@ -17,9 +20,14 @@ const (
 
 var db *bolt.DB
 
+func getDbName() string {
+	port := os.Args[2][6:]
+	return fmt.Sprintf("%s_%s.db", dbName, port)
+}
+
 func DB() *bolt.DB {
 	if db == nil {
-		dbPointer, err := bolt.Open(dbName, 0600, nil) // Bolt DB 시작, 이름도 생성
+		dbPointer, err := bolt.Open(getDbName(), 0600, nil) // Bolt DB 시작, 이름도 생성
 		db = dbPointer
 		utils.HandleErr(err)
 		err = db.Update(func(tx *bolt.Tx) error {
