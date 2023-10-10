@@ -2,6 +2,7 @@ package p2p
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/viviviviviid/go-coin/blockchain"
 	"github.com/viviviviviid/go-coin/utils"
@@ -31,6 +32,7 @@ func makeMessage(kind MessageKind, payload interface{}) []byte {
 // 그래서 Unmarshal도 두번해줘야함
 
 func sendNewestBlock(p *peer) {
+	fmt.Printf("Sending newest block to %s\n", p.key)
 	block, err := blockchain.FindBlock(blockchain.Blockchain().NewestHash)
 	utils.HandleErr(err)
 	m := makeMessage(MessageNewestBlock, block) // JSON 바이트로 인코딩 된 메세지 반환
@@ -50,20 +52,25 @@ func sendAllBlocks(p *peer) {
 func handleMsg(m *Message, p *peer) { // 들어오는 메세지의 유형에 따라 어떻게 처리할지 분류 및 처리
 	switch m.Kind {
 	case MessageNewestBlock: // 3000번 입장에서 4000번으로부터의 메세지를 받고 있는 상황
+		fmt.Printf("Received the newest block from %s\n", p.key)
 		var payload blockchain.Block
 		utils.HandleErr(json.Unmarshal(m.Payload, &payload))
 		b, err := blockchain.FindBlock(blockchain.Blockchain().NewestHash)
 		utils.HandleErr(err)
 		if payload.Height >= b.Height { // 우리 노드의 최신블록보다 블록높이가 높은지 확인 -> 뒤처지는지 앞서는지
+			fmt.Printf("Request all block from %s\n", p.key)
 			// 4000번에게 블록전체를 요청
 			requestAllBlocks(p)
 		} else {
+			fmt.Printf("Sending newest block from %s\n", p.key)
 			// 4000번에게 우리의 블록들을 전달
 			sendNewestBlock(p)
 		}
 	case MessageAllBlocksRequest:
+		fmt.Printf("%s wants all the blocks.\n", p.key)
 		sendAllBlocks(p)
 	case MessageAllBlocksResponse:
+		fmt.Printf("Received all the blocks from %s\n", p.key)
 		var payload []*blockchain.Block
 		utils.HandleErr(json.Unmarshal(m.Payload, &payload))
 	}

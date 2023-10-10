@@ -18,6 +18,7 @@ func Upgrade(rw http.ResponseWriter, r *http.Request) {
 	upgrader.CheckOrigin = func(r *http.Request) bool { // 웹소켓 연결 허가
 		return openPort != "" && ip != "" // 공란으로 잘못보낸다면 업그레이드 안함
 	}
+	fmt.Printf("%s wants an upgrade \n", openPort)
 	conn, err := upgrader.Upgrade(rw, r, nil) // 3000번에 저장
 	utils.HandleErr(err)
 	initPeer(conn, ip, openPort)
@@ -26,6 +27,7 @@ func Upgrade(rw http.ResponseWriter, r *http.Request) {
 
 func AddPeer(address, port, openPort string) { // 서로간에 connection생성, port가 node라고 생각.
 	// Port 4000번이 3000으로 upgrade를 요청 // 위 upgrade가 발생하면 우리와 3000번간의 연결이 생성
+	fmt.Printf("%s want to connect to port %s\n", openPort, port)
 	conn, _, err := websocket.DefaultDialer.Dial(fmt.Sprintf("ws://%s:%s/ws?openPort=%s", address, port, openPort[1:]), nil) // 새로운 URL을 call하면 새로운 connection을 생성 -> 전화기의 다이얼 역할
 	utils.HandleErr(err)
 	// 4000번에 저장
