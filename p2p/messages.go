@@ -16,6 +16,7 @@ const (
 	MessageAllBlocksResponse                    // iota 밑에 있어서, 변수들의 종류도 MessageKind가 될것
 	MessageNewBlockNotify
 	MessageNewTxNotify
+	MessageNewPeerNotify
 )
 
 type Message struct { // 다른 언어와 소통하기에도 적합한 메세지 형식 정의
@@ -61,6 +62,11 @@ func notifyNewTx(tx *blockchain.Tx, p *peer) {
 	p.inbox <- m
 }
 
+func notifyNewPeer(address string, p *peer) {
+	m := makeMessage(MessageNewPeerNotify, address)
+	p.inbox <- m
+}
+
 func handleMsg(m *Message, p *peer) { // 들어오는 메세지의 유형에 따라 어떻게 처리할지 분류 및 처리
 	switch m.Kind {
 	case MessageNewestBlock: // 3000번 입장에서 4000번으로부터의 메세지를 받고 있는 상황
@@ -94,5 +100,9 @@ func handleMsg(m *Message, p *peer) { // 들어오는 메세지의 유형에 따
 		var payload *blockchain.Tx
 		utils.HandleErr(json.Unmarshal(m.Payload, &payload))
 		blockchain.Mempool().AddPeerTx(payload)
+	case MessageNewPeerNotify:
+		var payload string
+		utils.HandleErr(json.Unmarshal(m.Payload, &payload))
+		fmt.Printf("I will now /ws upgrade %s", payload)
 	}
 }

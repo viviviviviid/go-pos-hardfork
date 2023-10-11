@@ -26,13 +26,17 @@ func Upgrade(rw http.ResponseWriter, r *http.Request) {
 
 }
 
-func AddPeer(address, port, openPort string) { // 서로간에 connection생성, port가 node라고 생각.
+func AddPeer(address, port, openPort string, broadcast bool) { // 서로간에 connection생성, port가 node라고 생각.
 	// Port 4000번이 3000으로 upgrade를 요청 // 위 upgrade가 발생하면 우리와 3000번간의 연결이 생성
 	fmt.Printf("%s want to connect to port %s\n", openPort, port)
 	conn, _, err := websocket.DefaultDialer.Dial(fmt.Sprintf("ws://%s:%s/ws?openPort=%s", address, port, openPort[1:]), nil) // 새로운 URL을 call하면 새로운 connection을 생성 -> 전화기의 다이얼 역할
 	utils.HandleErr(err)
 	// 4000번에 저장
 	p := initPeer(conn, address, port)
+	if !broadcast {
+		BroadcastNewPeer(p) // 새로운 peer가 생겼다고 기존 peers에게 브로드캐스팅
+		return
+	}
 	sendNewestBlock(p)
 }
 
@@ -47,6 +51,15 @@ func BroadcastNewBlock(b *blockchain.Block) {
 func BroadcastNewTx(tx *blockchain.Tx) {
 	for _, p := range Peers.v {
 		notifyNewTx(tx, p)
+	}
+}
+
+func BroadcastNewPeer(newPeer *peer) {
+	for key, p := range Peers.v {
+		if key != newPeer.key {
+			payload := fmt.Sprintf("%s:%s", newPeer.key, p.port)
+			notifyNewPeer(payload, p)
+		}
 	}
 }
 
