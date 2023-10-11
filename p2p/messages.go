@@ -3,6 +3,7 @@ package p2p
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/viviviviviid/go-coin/blockchain"
 	"github.com/viviviviviid/go-coin/utils"
@@ -103,6 +104,7 @@ func handleMsg(m *Message, p *peer) { // 들어오는 메세지의 유형에 따
 	case MessageNewPeerNotify:
 		var payload string
 		utils.HandleErr(json.Unmarshal(m.Payload, &payload))
-		fmt.Printf("I will now /ws upgrade %s", payload)
+		parts := strings.Split(payload, ":")
+		AddPeer(parts[0], parts[1], parts[2], false)
 	}
 }
