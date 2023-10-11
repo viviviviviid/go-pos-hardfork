@@ -181,16 +181,23 @@ func (b *blockchain) Replace(newBlocks []*Block) { // 기존 블록체인을, �
 	}
 }
 
-func (b *blockchain) AddPeerBlock(block *Block) {
+func (b *blockchain) AddPeerBlock(newBlock *Block) {
 	b.m.Lock()
+	m.m.Lock()
 	defer b.m.Unlock()
+	defer m.m.Unlock()
 
 	b.Height += 1
-	b.CurrentDifficulty = block.Difficulty
-	b.NewestHash = block.Hash
+	b.CurrentDifficulty = newBlock.Difficulty
+	b.NewestHash = newBlock.Hash
 
 	persistBlockchain(b)
-	persistBlock(block)
+	persistBlock(newBlock)
 
-	// mempool
+	for _, tx := range newBlock.Transaction {
+		_, ok := m.Txs[tx.ID] // 만약 Txs map에 이 ID를 가진 tx가 있다고 한다면, 이미 다른 노드에 의해 사용된 멤풀의 트잭이므로, 우리 노드의 멤풀에서 삭제
+		if ok {
+			delete(m.Txs, tx.ID)
+		}
+	}
 }

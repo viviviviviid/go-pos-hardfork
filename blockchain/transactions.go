@@ -16,7 +16,7 @@ const (
 
 // mempool은 대기 중인 트랜잭션들을 저장합니다.
 type mempool struct {
-	Txs []*Tx
+	Txs map[string]*Tx
 	m   sync.Mutex
 }
 
@@ -26,7 +26,9 @@ var memOnce sync.Once
 
 func Mempool() *mempool {
 	memOnce.Do(func() {
-		m = &mempool{}
+		m = &mempool{
+			Txs: make(map[string]*Tx),
+		}
 	})
 	return m
 }
@@ -170,21 +172,24 @@ func (m *mempool) AddTx(to string, amount int) (*Tx, error) {
 	if err != nil {
 		return nil, err
 	}
-	m.Txs = append(m.Txs, tx)
+	m.Txs[tx.ID] = tx
 	return tx, nil
 }
 
 // TxToConfirm 메서드는 확인할 트랜잭션들을 반환
 func (m *mempool) TxToConfirm() []*Tx {
 	coinbase := makeCoinbaseTx(wallet.Wallet().Address)
-	txs := m.Txs // 블록당 트랜잭션 포함 수가 정해져있지않고, 매번 mempool에 있는 tx들을 전부 가져옴
+	var txs []*Tx
+	for _, tx := range m.Txs {
+		txs = append(txs, tx)
+	}
 	txs = append(txs, coinbase)
-	m.Txs = nil
+	m.Txs = make(map[string]*Tx) // 빈 map // nil을 넣으면 삭제하는 것과 같아서
 	return txs
 }
 
 func (m *mempool) AddPeerTx(tx *Tx) {
 	m.m.Lock()
 	defer m.m.Unlock()
-	m.Txs = append(m.Txs, tx)
+	m.Txs[tx.ID] = tx
 }
