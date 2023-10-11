@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/websocket"
+	"github.com/viviviviviid/go-coin/blockchain"
 	"github.com/viviviviviid/go-coin/utils"
 )
 
@@ -33,6 +34,12 @@ func AddPeer(address, port, openPort string) { // 서로간에 connection생성,
 	// 4000번에 저장
 	p := initPeer(conn, address, port)
 	sendNewestBlock(p)
+}
+
+func BroadcastNewBlock(b *blockchain.Block) {
+	for _, p := range Peers.v { // 모든 피어들에게 전달
+		notifyNewBlock(b, p)
+	}
 }
 
 // Upgrader은 3000번에 저장되는 conn(4000)

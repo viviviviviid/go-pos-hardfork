@@ -102,7 +102,8 @@ func blocks(rw http.ResponseWriter, r *http.Request) {
 		utils.HandleErr(json.NewEncoder(rw).Encode(blockchain.Blocks(blockchain.Blockchain())))
 		// Encode가 Marshall의 일을 해주고, 결과를 ResponseWrite에 작성
 	case "POST":
-		blockchain.Blockchain().AddBlock()
+		newBlock := blockchain.Blockchain().AddBlock()
+		p2p.BroadcastNewBlock(newBlock)
 		rw.WriteHeader(http.StatusCreated) // StatusCreated : 201 (status code)
 	}
 }
@@ -122,7 +123,7 @@ func block(rw http.ResponseWriter, r *http.Request) {
 }
 
 func status(rw http.ResponseWriter, r *http.Request) {
-	utils.HandleErr(json.NewEncoder(rw).Encode(blockchain.Blockchain()))
+	blockchain.Status(blockchain.Blockchain(), rw)
 }
 
 func jsonContentTypeMiddleware(next http.Handler) http.Handler { //

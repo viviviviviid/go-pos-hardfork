@@ -19,7 +19,7 @@ type Block struct {
 	Transaction []*Tx  `json:"transaction"`
 }
 
-func (b *Block) persist() {
+func persistBlock(b *Block) {
 	db.SaveBlock(b.Hash, utils.ToBytes(b)) // interface로 인자를 받은 ToBytes는 뭐든 받을 수 있다 = interface
 }
 
@@ -64,6 +64,6 @@ func createBlock(prevHash string, height, diff int) *Block {
 	block.mine()
 	block.Transaction = Mempool.TxToConfirm()
 	// 위 block에 바로 안 넣은 이유 : 바로 윗줄 채굴이 종료되고나서 컨펌되어야하기때문
-	block.persist()
+	persistBlock(block)
 	return block
 }
