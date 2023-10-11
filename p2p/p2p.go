@@ -37,6 +37,8 @@ func AddPeer(address, port, openPort string) { // 서로간에 connection생성,
 }
 
 func BroadcastNewBlock(b *blockchain.Block) {
+	Peers.m.Lock()
+	defer Peers.m.Unlock()
 	for _, p := range Peers.v { // 모든 피어들에게 전달
 		notifyNewBlock(b, p)
 	}
