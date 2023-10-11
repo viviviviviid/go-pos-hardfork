@@ -44,6 +44,12 @@ func BroadcastNewBlock(b *blockchain.Block) {
 	}
 }
 
+func BroadcastNewTx(tx *blockchain.Tx) {
+	for _, p := range Peers.v {
+		notifyNewTx(tx, p)
+	}
+}
+
 // Upgrader은 3000번에 저장되는 conn(4000)
 // AddPeer은 4000번에 저장되는 conn(3000)
 

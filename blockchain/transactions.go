@@ -2,6 +2,7 @@ package blockchain
 
 import (
 	"errors"
+	"sync"
 	"time"
 
 	"github.com/viviviviviid/go-coin/utils"
@@ -16,10 +17,19 @@ const (
 // mempool은 대기 중인 트랜잭션들을 저장합니다.
 type mempool struct {
 	Txs []*Tx
+	m   sync.Mutex
 }
 
 // 비어있는 mempool을 생성
-var Mempool *mempool = &mempool{}
+var m *mempool = &mempool{}
+var memOnce sync.Once
+
+func Mempool() *mempool {
+	memOnce.Do(func() {
+		m = &mempool{}
+	})
+	return m
+}
 
 type Tx struct {
 	ID        string   `json:"id"`
@@ -83,7 +93,7 @@ func isOnMempool(uTxOut *UTxOut) bool {
 	// mempool에 있는 트랜잭션의 input중에, uTxOut와 같은 트랜잭션 ID와 index를 가지고있는 항목이 있는지 검사
 	exists := false
 Outer:
-	for _, tx := range Mempool.Txs {
+	for _, tx := range Mempool().Txs {
 		for _, input := range tx.TxIns {
 			if input.TxID == uTxOut.TxID && input.Index == uTxOut.Index {
 				exists = true
@@ -155,13 +165,13 @@ func makeTx(from, to string, amount int) (*Tx, error) {
 }
 
 // AddTx 메서드는 mempool에 트랜잭션을 추가
-func (m *mempool) AddTx(to string, amount int) error {
+func (m *mempool) AddTx(to string, amount int) (*Tx, error) {
 	tx, err := makeTx(wallet.Wallet().Address, to, amount)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	m.Txs = append(m.Txs, tx)
-	return nil
+	return tx, nil
 }
 
 // TxToConfirm 메서드는 확인할 트랜잭션들을 반환
@@ -171,4 +181,10 @@ func (m *mempool) TxToConfirm() []*Tx {
 	txs = append(txs, coinbase)
 	m.Txs = nil
 	return txs
+}
+
+func (m *mempool) AddPeerTx(tx *Tx) {
+	m.m.Lock()
+	defer m.m.Unlock()
+	m.Txs = append(m.Txs, tx)
 }

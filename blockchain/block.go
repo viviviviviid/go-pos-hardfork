@@ -62,7 +62,7 @@ func createBlock(prevHash string, height, diff int) *Block {
 		Nonce:      0,
 	}
 	block.mine()
-	block.Transaction = Mempool.TxToConfirm()
+	block.Transaction = Mempool().TxToConfirm()
 	// 위 block에 바로 안 넣은 이유 : 바로 윗줄 채굴이 종료되고나서 컨펌되어야하기때문
 	persistBlock(block)
 	return block
