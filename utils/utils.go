@@ -1,3 +1,4 @@
+// Package utils contains functions to be used across the application.
 package utils
 
 import (
@@ -23,11 +24,13 @@ func ToBytes(i interface{}) []byte { // interface: 함수에게 뭐든 받으라
 	return aBuffer.Bytes()
 }
 
+// FromBytes take an interface and data and then will encode the data to the interface
 func FromBytes(i interface{}, data []byte) { // ex (interface{}: 블록의 포인터, data: data) -> data를 포인터로 복원
 	encoder := gob.NewDecoder(bytes.NewReader(data)) // 디코더 생성
 	HandleErr(encoder.Decode(i))
 }
 
+// Hash takes an interface, hashes it and returns the hex encoding of the hash.
 func Hash(i interface{}) string {
 	s := fmt.Sprintf("%v", i) // v: default formmater
 	hash := sha256.Sum256([]byte(s))
