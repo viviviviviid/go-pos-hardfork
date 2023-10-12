@@ -2,6 +2,7 @@ package utils
 
 import (
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"reflect"
@@ -44,7 +45,7 @@ func TestToBytes(t *testing.T) {
 }
 
 func TestSplitter(t *testing.T) {
-	type test struct {
+	type test struct { // test table (struct)
 		input  string
 		sep    string
 		index  int
@@ -77,4 +78,33 @@ func TestHandleErr(t *testing.T) {
 	if !called {
 		t.Error("HandleError should call fn")
 	}
+}
+
+func TestFromBytes(t *testing.T) {
+	type testStruct struct {
+		Test string
+	}
+	var restored testStruct
+	ts := testStruct{"test"}
+	b := ToBytes(ts)
+	FromBytes(&restored, b)
+	if !reflect.DeepEqual(ts, restored) { // DeepEqual: 타입을 포함해 완전히 동일한지
+		t.Error("FromBytes() should restor struct.")
+	}
+}
+
+func TestToJSON(t *testing.T) {
+	type testStruct struct{ Test string }
+	s := testStruct{"test"}
+	b := ToJSON(s)
+	k := reflect.TypeOf(b).Kind()
+	if k != reflect.Slice {
+		t.Errorf("Expected %v and got %v", reflect.Slice, k)
+	}
+	var restored testStruct
+	json.Unmarshal(b, &restored) // ToJson 함수 내의 marshal 테스트
+	if !reflect.DeepEqual(s, restored) {
+		t.Error("ToJSON() should encode to JSON correclty.")
+	}
+
 }
