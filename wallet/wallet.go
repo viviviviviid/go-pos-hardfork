@@ -46,6 +46,7 @@ func restoreKey() (key *ecdsa.PrivateKey) { // *ecdsa.PrivateKey 형식의 key�
 	keyAsBytes, err := os.ReadFile(fileName)
 	utils.HandleErr(err)
 	key, err = x509.ParseECPrivateKey(keyAsBytes) // 이미 함수의 반환 구조에서 초기화되었으므로 key를 갱신만 해줘도 됨.
+	// x509.ParseECPrivateKey를 진행하면 &{Curve, X, Y, D}가 길게 나오는데 이렇게 변환을 해야 ECDSA로써 개인키를 이용할 수 있다.
 	utils.HandleErr(err)
 	return // 함수의 반환 구조에서 뭘 반환할지 알려줬으므로, return 다음에 뭔가를 안써줘도 됨
 } // return에 비어있는지 아닌지 확인해야하므로 긴 함수에서는 귀찮음이 가중될 수 있음 -> 알고만 있기
