@@ -7,6 +7,7 @@ import (
 	"crypto/x509"
 	"encoding/hex"
 	"fmt"
+	"io/fs"
 	"math/big"
 	"os"
 
@@ -17,17 +18,35 @@ const (
 	fileName string = "nomadcoin.wallet"
 )
 
+type fileLayer interface {
+	hasWalletFile() bool
+	writeFile(name string, data []byte, perm fs.FileMode) error
+	readFile(name string) ([]byte, error)
+}
+
+type layer struct{}
+
+func (layer) hasWalletFile() bool {
+	_, err := os.Stat(fileName) // 파일이 존재하는지
+	return !os.IsNotExist(err)  // os.Stat에서 받아온 err를 확인하고 지갑 파일이 없다면 true
+}
+
+func (layer) writeFile(name string, data []byte, perm fs.FileMode) error {
+	return os.WriteFile(name, data, perm) // perm -> 0644 : 읽기와 쓰기 허용
+}
+
+func (layer) readFile(name string) ([]byte, error) {
+	return os.ReadFile(name)
+}
+
+var files fileLayer = layer{}
+
 type wallet struct {
 	privateKey *ecdsa.PrivateKey
 	Address    string
 }
 
 var w *wallet // 이걸 소문자로 써서 자유롭게 공유하는게 아니라, 아래의 Wallet 함수로 드러나게 할 예정
-
-func hasWalletFile() bool {
-	_, err := os.Stat(fileName) // 파일이 존재하는지
-	return !os.IsNotExist(err)  // os.Stat에서 받아온 err를 확인하고 지갑 파일이 없다면 true
-}
 
 func createPriveKey() *ecdsa.PrivateKey {
 	privKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
@@ -38,12 +57,12 @@ func createPriveKey() *ecdsa.PrivateKey {
 func persistKey(key *ecdsa.PrivateKey) { // key 저장
 	bytes, err := x509.MarshalECPrivateKey(key) // bytes는 복붙가능하기때문에 변환할 필요없이 파일에 박으면 됨
 	utils.HandleErr(err)
-	err = os.WriteFile(fileName, bytes, 0644) // 0644 : 읽기와 쓰기 허용
+	err = files.writeFile(fileName, bytes, 0644)
 	utils.HandleErr(err)
 }
 
 func restoreKey() (key *ecdsa.PrivateKey) { // *ecdsa.PrivateKey 형식의 key를 선언 및 초기화
-	keyAsBytes, err := os.ReadFile(fileName)
+	keyAsBytes, err := files.readFile(fileName)
 	utils.HandleErr(err)
 	key, err = x509.ParseECPrivateKey(keyAsBytes) // 이미 함수의 반환 구조에서 초기화되었으므로 key를 갱신만 해줘도 됨.
 	// x509.ParseECPrivateKey를 진행하면 &{Curve, X, Y, D}가 길게 나오는데 이렇게 변환을 해야 ECDSA로써 개인키를 이용할 수 있다.
@@ -102,7 +121,7 @@ func Wallet() *wallet {
 		w = &wallet{}
 
 		// 지갑의 유뮤 확인
-		if hasWalletFile() {
+		if files.hasWalletFile() {
 			// 이미 있다면 파일로부터 지갑을 복구
 			w.privateKey = restoreKey()
 
