@@ -39,7 +39,7 @@ func (layer) readFile(name string) ([]byte, error) {
 	return os.ReadFile(name)
 }
 
-var files fileLayer = layer{}
+var files fileLayer = layer{} // layer -> fakeLayer
 
 type wallet struct {
 	privateKey *ecdsa.PrivateKey

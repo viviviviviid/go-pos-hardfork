@@ -12,6 +12,12 @@ const (
 	testSig     string = "9d55d4923bedff540ff8adc725a0c92ce8896a112ef211396a01dc198225e4c5dbe4bef6526c25ff012a377cc78a3c920287b72601f24df4f138163c2f9eafb1"
 )
 
+type fakeLayer struct{}
+
+func TestWallet(t *testing.T) {
+	files = fakeLayer{}
+}
+
 func makeTestWallet() *wallet {
 	w := &wallet{}
 	b, _ := hex.DecodeString(testPrivKey)
