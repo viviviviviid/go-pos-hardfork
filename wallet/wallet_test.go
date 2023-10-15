@@ -3,6 +3,8 @@ package wallet
 import (
 	"crypto/x509"
 	"encoding/hex"
+	"io/fs"
+	"reflect"
 	"testing"
 )
 
@@ -12,10 +14,48 @@ const (
 	testSig     string = "9d55d4923bedff540ff8adc725a0c92ce8896a112ef211396a01dc198225e4c5dbe4bef6526c25ff012a377cc78a3c920287b72601f24df4f138163c2f9eafb1"
 )
 
-type fakeLayer struct{}
+type fakeLayer struct {
+	fakeHasWalletFile func() bool
+}
+
+func (f fakeLayer) hasWalletFile() bool {
+	return f.fakeHasWalletFile()
+}
+
+func (fakeLayer) writeFile(name string, data []byte, perm fs.FileMode) error {
+	return nil
+}
+
+func (fakeLayer) readFile(name string) ([]byte, error) {
+	return x509.MarshalECPrivateKey(makeTestWallet().privateKey) // 원래는 지갑 파일의 bytes를 가져오지만, 테스트이므로, 테스트 지갑의 프라이빗키를 가져와서 마샬로 bytes화 해서 넘겨줌
+}
 
 func TestWallet(t *testing.T) {
-	files = fakeLayer{}
+	t.Run("New Wallet is created", func(t *testing.T) {
+		files = fakeLayer{
+			fakeHasWalletFile: func() bool {
+				t.Log("I have been called")
+				return false
+			},
+		}
+		tw := Wallet()
+		if reflect.TypeOf(tw) != reflect.TypeOf(&wallet{}) {
+			t.Error("New Wallet should return a new wallet instance")
+		}
+	})
+	t.Run("Wallet is restored", func(t *testing.T) {
+		files = fakeLayer{
+			fakeHasWalletFile: func() bool {
+				t.Log("I have been called")
+				return true
+			},
+		}
+		w = nil
+		tw := Wallet()
+		if reflect.TypeOf(tw) != reflect.TypeOf(&wallet{}) {
+			t.Error("New Wallet should return a new wallet instance")
+		}
+	})
 }
 
 func makeTestWallet() *wallet {
