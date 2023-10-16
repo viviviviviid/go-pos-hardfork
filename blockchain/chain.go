@@ -23,15 +23,24 @@ type blockchain struct {
 	m                 sync.Mutex
 }
 
+type storage interface {
+	FindBlock(hash string) []byte
+	SaveBlock(hash string, data []byte)
+	SaveChain(data []byte)
+	LoadChain() []byte
+	DeleteAllBlocks()
+}
+
 var b *blockchain
 var once sync.Once // sync 패키지
+var dbStorage storage = db.DB{}
 
 func (b *blockchain) restore(data []byte) { // ToBytes를 통해 byte화 된걸 다시 되돌림
 	utils.FromBytes(b, data)
 }
 
 func persistBlockchain(b *blockchain) {
-	db.SaveBlockchain(utils.ToBytes(b))
+	dbStorage.SaveChain(utils.ToBytes(b))
 }
 
 func (b *blockchain) AddBlock() *Block {
@@ -149,7 +158,7 @@ func Blockchain() *blockchain {
 		b = &blockchain{
 			Height: 0,
 		} // 새로 만든 텅빈 블록체인
-		checkpoint := db.Checkpoint()
+		checkpoint := dbStorage.LoadChain()
 		// search for checkpoint on the db
 		if checkpoint == nil {
 			b.AddBlock()
@@ -175,7 +184,7 @@ func (b *blockchain) Replace(newBlocks []*Block) { // 기존 블록체인을, �
 	b.Height = len(newBlocks)
 	b.NewestHash = newBlocks[0].Hash
 	persistBlockchain(b)
-	db.EmptyBlocks()
+	dbStorage.DeleteAllBlocks()
 	for _, block := range newBlocks {
 		persistBlock(block)
 	}

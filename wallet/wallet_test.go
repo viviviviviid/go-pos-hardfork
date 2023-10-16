@@ -18,7 +18,7 @@ type fakeLayer struct {
 	fakeHasWalletFile func() bool
 }
 
-func (f fakeLayer) hasWalletFile() bool {
+func (f fakeLayer) hasWalletFile() bool { // 실제 Wallet()에서 hasWalletFile을 호춣하고있지만 테스트에서는 이 내용으로 바뀐 hasWalletFile을 호출함
 	return f.fakeHasWalletFile()
 }
 
