@@ -3,7 +3,7 @@ Go Blockchain Hardfork Project (PoW -> PoS)
 
 
 1. clone repo
-2. go to run_nodes
+2. go to ./run_nodes
 3. run this command
 ```
 chmod +x kill_nodes.sh run_nodes.sh
