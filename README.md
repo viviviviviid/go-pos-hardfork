@@ -8,7 +8,17 @@ Go Blockchain Hardfork Project (PoW -> PoS)
 ```
 chmod +x kill_nodes.sh run_nodes.sh
 ```
-4. enjoy in api.http file
+4. run this command
+```
+./run_nodes.sh
+```
+5. enjoy in api.http file
+6. kill all nodes using this command
+```
+./kill_nodes.sh
+```
+
+
 
 
 
