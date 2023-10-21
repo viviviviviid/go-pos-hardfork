@@ -40,6 +40,27 @@ func AddPeer(address, port, openPort string, broadcast bool) { // 서로간에 c
 	sendNewestBlock(p)
 }
 
+// func AddAllPeer(address, port, openPort string, broadcast bool) {
+
+// 	intPort, err := strconv.Atoi(port)
+// 	utils.HandleErr(err)
+
+// 	for i := range [9]int{} {
+// 		strPort := fmt.Sprintf("%d", intPort+i)
+// 		fmt.Printf("%s want to connect to port %s\n", openPort, strPort)
+
+// 		conn, _, err := websocket.DefaultDialer.Dial(fmt.Sprintf("ws://%s:%s/ws?openPort=%s", address, strPort, openPort), nil) // 새로운 URL을 call하면 새로운 connection을 생성 -> 전화기의 다이얼 역할
+// 		utils.HandleErr(err)
+
+// 		p := initPeer(conn, address, strPort)
+// 		if broadcast {
+// 			BroadcastNewPeer(p)
+// 		}
+// 		sendNewestBlock(p)
+
+// 	}
+// }
+
 func BroadcastNewBlock(b *blockchain.Block) {
 	Peers.m.Lock()
 	defer Peers.m.Unlock()

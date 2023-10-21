@@ -175,7 +175,7 @@ func myWallet(rw http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(rw).Encode(myWalletResponse{Address: address})
 }
 
-func peers(rw http.ResponseWriter, r *http.Request) {
+func peer(rw http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "POST":
 		var paylaod addPeerPayload
@@ -186,6 +186,13 @@ func peers(rw http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(rw).Encode(p2p.AllPeers(&p2p.Peers))
 	}
 }
+
+// func peers(rw http.ResponseWriter, r *http.Request) {
+// 	var paylaod addPeerPayload
+// 	json.NewDecoder(r.Body).Decode(&paylaod)
+// 	p2p.AddAllPeer(paylaod.Address, paylaod.Port, port[1:], true)
+// 	rw.WriteHeader(http.StatusOK)
+// }
 
 func Start(aPort int) {
 	port = fmt.Sprintf(":%d", aPort)
@@ -200,7 +207,8 @@ func Start(aPort int) {
 	router.HandleFunc("/wallet", myWallet).Methods("GET")
 	router.HandleFunc("/transactions", transactions).Methods("POST")
 	router.HandleFunc("/ws", p2p.Upgrade).Methods("GET")
-	router.HandleFunc("/peers", peers).Methods("GET", "POST")
+	router.HandleFunc("/peer", peer).Methods("GET", "POST")
+	// router.HandleFunc("/peers", peers).Methods("POST")
 	// Gorilla Mux 공식문서에 나와있는대로
 	fmt.Printf("Listening on http://localhost%s\n", port)
 	log.Fatal(http.ListenAndServe(port, router))
