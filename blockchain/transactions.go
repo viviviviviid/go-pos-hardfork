@@ -38,6 +38,7 @@ type Tx struct {
 	Timestamp int      `json:"timestamp"`
 	TxIns     []*TxIn  `json:"txIns"`
 	TxOuts    []*TxOut `json:"txOuts"`
+	InputData string   `json:"inputData"`
 }
 
 type TxIn struct {

@@ -1,26 +1,25 @@
 http://localhost:4000/
 ###
-http://localhost:3000/status
+http://localhost:4000/status
 ###
 http://localhost:4000/balance/727355b19143e84127a936db88579abf674fefba0bedd7f960a1982169caaf1712ef2f5fda1085f094e4385b1075961b14346532a2aa2c239205d63b7573ae51
 ###
 http://localhost:4000/balance/727355b19143e84127a936db88579abf674fefba0bedd7f960a1982169caaf1712ef2f5fda1085f094e4385b1075961b14346532a2aa2c239205d63b7573ae51?total=true
 ###
-http://localhost:4000/blocks
+http://localhost:3000/blocks
 ###
-http://localhost:4000/wallet
+http://localhost:3000/wallet
 ###
-POST http://localhost:4000/blocks
+POST http://localhost:3000/blocks
+###
+POST http://localhost:4000/transactions
 
-###
-POST http://localhost:3000/transactions
- 
 {
     "to":"kkk",
     "amount":10
 }
 ###
-http://localhost:1000/mempool
+http://localhost:4000/mempool
 ###
 POST http://localhost:4000/peers
 
