@@ -43,8 +43,9 @@ type errorResponse struct {
 }
 
 type addTxPayload struct {
-	To     string
-	Amount int
+	To        string
+	Amount    int
+	InputData string
 }
 
 type addPeerPayload struct {
@@ -119,7 +120,6 @@ func block(rw http.ResponseWriter, r *http.Request) {
 	} else {
 		utils.HandleErr(encoder.Encode(block))
 	}
-
 }
 
 func status(rw http.ResponseWriter, r *http.Request) {
@@ -160,7 +160,7 @@ func mempool(rw http.ResponseWriter, r *http.Request) {
 func transactions(rw http.ResponseWriter, r *http.Request) {
 	var payload addTxPayload
 	utils.HandleErr(json.NewDecoder(r.Body).Decode(&payload))
-	tx, err := blockchain.Mempool().AddTx(payload.To, payload.Amount)
+	tx, err := blockchain.Mempool().AddTx(payload.To, payload.Amount, payload.InputData)
 	if err != nil {
 		rw.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(rw).Encode(errorResponse{err.Error()})
@@ -175,24 +175,21 @@ func myWallet(rw http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(rw).Encode(myWalletResponse{Address: address})
 }
 
-func peer(rw http.ResponseWriter, r *http.Request) {
+func peers(rw http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "POST":
-		var paylaod addPeerPayload
-		json.NewDecoder(r.Body).Decode(&paylaod)
-		p2p.AddPeer(paylaod.Address, paylaod.Port, port[1:], true)
+		var payload addPeerPayload
+		json.NewDecoder(r.Body).Decode(&payload)
+		p2p.AddPeer(payload.Address, payload.Port, port[1:], true)
 		rw.WriteHeader(http.StatusOK)
 	case "GET":
 		json.NewEncoder(rw).Encode(p2p.AllPeers(&p2p.Peers))
 	}
 }
 
-// func peers(rw http.ResponseWriter, r *http.Request) {
-// 	var paylaod addPeerPayload
-// 	json.NewDecoder(r.Body).Decode(&paylaod)
-// 	p2p.AddAllPeer(paylaod.Address, paylaod.Port, port[1:], true)
-// 	rw.WriteHeader(http.StatusOK)
-// }
+func stake(rw http.ResponseWriter, r *http.Request) {
+
+}
 
 func Start(aPort int) {
 	port = fmt.Sprintf(":%d", aPort)
@@ -207,8 +204,8 @@ func Start(aPort int) {
 	router.HandleFunc("/wallet", myWallet).Methods("GET")
 	router.HandleFunc("/transactions", transactions).Methods("POST")
 	router.HandleFunc("/ws", p2p.Upgrade).Methods("GET")
-	router.HandleFunc("/peer", peer).Methods("GET", "POST")
-	// router.HandleFunc("/peers", peers).Methods("POST")
+	router.HandleFunc("/peer", peers).Methods("GET", "POST")
+	router.HandleFunc("/stake", stake).Methods("GET")
 	// Gorilla Mux 공식문서에 나와있는대로
 	fmt.Printf("Listening on http://localhost%s\n", port)
 	log.Fatal(http.ListenAndServe(port, router))

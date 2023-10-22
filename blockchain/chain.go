@@ -9,16 +9,15 @@ import (
 	"github.com/viviviviviid/go-coin/utils"
 )
 
-const (
-	blockInterval int = 2 // 2분마다 한개 생성하는것을 목표로 잡음
-	allowedRange  int = 2 // expectedTime과의 Gap차이 허용 구간
-)
+// const (
+// 	blockInterval int = 2 // 2분마다 한개 생성하는것을 목표로 잡음
+// 	allowedRange  int = 2 // expectedTime과의 Gap차이 허용 구간
+// )
 
 type blockchain struct {
-	NewestHash        string `json:"newestHash"`
-	Height            int    `json:"height"`
-	CurrentDifficulty int    `json:"currentDifficulty"`
-	m                 sync.Mutex
+	NewestHash string `json:"newestHash"`
+	Height     int    `json:"height"`
+	m          sync.Mutex
 }
 
 type storage interface {

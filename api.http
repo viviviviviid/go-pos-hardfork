@@ -1,6 +1,6 @@
 http://localhost:4000/
 ###
-http://localhost:4000/status
+http://localhost:4003/status
 ###
 http://localhost:4000/balance/727355b19143e84127a936db88579abf674fefba0bedd7f960a1982169caaf1712ef2f5fda1085f094e4385b1075961b14346532a2aa2c239205d63b7573ae51
 ###
@@ -10,91 +10,77 @@ http://localhost:4000/blocks
 ###
 http://localhost:3000/wallet
 ###
-POST http://localhost:3000/blocks
+POST http://localhost:4005/blocks
 ###
-POST http://localhost:4000/transactions
+POST http://localhost:4002/transactions
 
 {
     "to":"kkk",
-    "amount":10
+    "amount":10,
+    "inputData":"any string"
 }
 ### 
-http://localhost:4000/mempool
+http://localhost:4001/mempool
 ###
-http://localhost:3000/peer
-
-# ###
-# POST http://localhost:3000/peers
-
-# {
-#     "address": "127.0.0.1",
-#     "port": "4000"
-# }
+http://localhost:4000/peer
 ###
-POST http://localhost:3000/peer
-
-{
-    "address": "127.0.0.1",
-    "port": "4000"
-}
-###
-POST http://localhost:3000/peer
+POST http://localhost:4000/peer
 
 {
     "address": "127.0.0.1",
     "port": "4001"
 }
 ###
-POST http://localhost:3000/peer
+POST http://localhost:4000/peer
 
 {
     "address": "127.0.0.1",
     "port": "4002"
 }
 ###
-POST http://localhost:3000/peer
+POST http://localhost:4000/peer
 
 {
     "address": "127.0.0.1",
     "port": "4003"
 }
 ###
-POST http://localhost:3000/peer
+POST http://localhost:4000/peer
 
 {
     "address": "127.0.0.1",
     "port": "4004"
 }
 ###
-POST http://localhost:3000/peer
+POST http://localhost:4000/peer
 
 {
     "address": "127.0.0.1",
     "port": "4005"
 }
 ###
-POST http://localhost:3000/peer
+POST http://localhost:4000/peer
 
 {
     "address": "127.0.0.1",
     "port": "4006"
 }
 ###
-POST http://localhost:3000/peer
+POST http://localhost:4000/peer
 
 {
     "address": "127.0.0.1",
     "port": "4007"
 }
 ###
-POST http://localhost:3000/peer
+POST http://localhost:4000/peer
 
 {
     "address": "127.0.0.1",
     "port": "4008"
 }
 ###
-POST http://localhost:3000/peer
+POST http://localhost:4000/peer
 
 {
     "address": "127.0.0.1",

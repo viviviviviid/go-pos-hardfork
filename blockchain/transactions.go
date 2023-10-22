@@ -121,6 +121,7 @@ func makeCoinbaseTx(address string) *Tx {
 		Timestamp: int(time.Now().Unix()),
 		TxIns:     txIns,
 		TxOuts:    txOuts,
+		InputData: "From chain",
 	}
 	tx.getId()
 	return &tx
@@ -130,7 +131,7 @@ var ErrorNoMoney = errors.New("not enough money")
 var ErrorNotValid = errors.New("Tx Invalid")
 
 // makeTx 함수는 일반 트랜잭션을 생성합니다.
-func makeTx(from, to string, amount int) (*Tx, error) {
+func makeTx(from, to string, amount int, inputData string) (*Tx, error) {
 	if BalanceByAddress(from, Blockchain()) < amount {
 		return nil, ErrorNoMoney
 	}
@@ -157,6 +158,7 @@ func makeTx(from, to string, amount int) (*Tx, error) {
 		Timestamp: int(time.Now().Unix()),
 		TxIns:     txIns,
 		TxOuts:    txOuts,
+		InputData: inputData,
 	}
 	tx.getId()
 	tx.sign()
@@ -168,8 +170,8 @@ func makeTx(from, to string, amount int) (*Tx, error) {
 }
 
 // AddTx 메서드는 mempool에 트랜잭션을 추가
-func (m *mempool) AddTx(to string, amount int) (*Tx, error) {
-	tx, err := makeTx(wallet.Wallet().Address, to, amount)
+func (m *mempool) AddTx(to string, amount int, inputData string) (*Tx, error) {
+	tx, err := makeTx(wallet.Wallet().Address, to, amount, inputData)
 	if err != nil {
 		return nil, err
 	}
