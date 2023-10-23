@@ -35,11 +35,6 @@ func FindBlock(hash string) (*Block, error) {
 	return block, nil
 }
 
-func (b *Block) mine() {
-	b.Timestamp = int(time.Now().Unix())
-	b.Hash = utils.Hash(b)
-}
-
 func createBlock(prevHash string, height int) *Block {
 	block := &Block{
 		Hash:     "",
@@ -47,7 +42,21 @@ func createBlock(prevHash string, height int) *Block {
 		Height:   height,
 	}
 	block.Transaction = Mempool().TxToConfirm()
-	block.mine()
+	block.Timestamp = int(time.Now().Unix())
+	block.Hash = utils.Hash(b)
+	persistBlock(block)
+	return block
+}
+
+func createGenesisBlock() *Block {
+	block := &Block{
+		Hash:     "",
+		PrevHash: "",
+		Height:   1,
+	}
+	block.Transaction = Mempool().GenesisTxToConfirm()
+	block.Timestamp = 1231006505 // bitcoin genesis block's timestamp
+	block.Hash = utils.Hash(b)
 	persistBlock(block)
 	return block
 }

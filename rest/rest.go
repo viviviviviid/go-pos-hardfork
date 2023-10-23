@@ -15,6 +15,11 @@ import (
 
 var port string
 
+const (
+	stakingAddress = "6308e20ddaeae91a48a7e07791d5dabb814bae4a1e44595b0253c6051dc1c260cc6d0747370172c0db48aec400f0dbf7badbeada4f585ecd7ef5115e1dddd433" // 3000번
+	stakingAmount  = 100
+)
+
 type url string // string 형태를 가진 URL이라는 type // type을 만들 수 있음
 
 func (u url) MarshalText() ([]byte, error) { // MarshalText: Field가 json string으로써 어떻게 보여질지 결정하는 Method
@@ -188,7 +193,14 @@ func peers(rw http.ResponseWriter, r *http.Request) {
 }
 
 func stake(rw http.ResponseWriter, r *http.Request) {
-
+	tx, err := blockchain.Mempool().AddTx(stakingAddress, stakingAmount, port[1:])
+	if err != nil {
+		rw.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(rw).Encode(errorResponse{err.Error()})
+		return
+	}
+	p2p.BroadcastNewTx(tx)
+	rw.WriteHeader(http.StatusCreated)
 }
 
 func Start(aPort int) {
@@ -205,7 +217,7 @@ func Start(aPort int) {
 	router.HandleFunc("/transactions", transactions).Methods("POST")
 	router.HandleFunc("/ws", p2p.Upgrade).Methods("GET")
 	router.HandleFunc("/peer", peers).Methods("GET", "POST")
-	router.HandleFunc("/stake", stake).Methods("GET")
+	router.HandleFunc("/stake", stake).Methods("POST")
 	// Gorilla Mux 공식문서에 나와있는대로
 	fmt.Printf("Listening on http://localhost%s\n", port)
 	log.Fatal(http.ListenAndServe(port, router))

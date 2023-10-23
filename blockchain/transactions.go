@@ -11,7 +11,8 @@ import (
 
 // minerReward는 채굴자에게 주어지는 보상입니다.
 const (
-	minerReward int = 50
+	minerReward          int    = 50
+	genesisBlockRewarder string = "6308e20ddaeae91a48a7e07791d5dabb814bae4a1e44595b0253c6051dc1c260cc6d0747370172c0db48aec400f0dbf7badbeada4f585ecd7ef5115e1dddd433"
 )
 
 // mempool은 대기 중인 트랜잭션들을 저장합니다.
@@ -127,6 +128,24 @@ func makeCoinbaseTx(address string) *Tx {
 	return &tx
 }
 
+func makeGenesisTx(address string) *Tx {
+	txIns := []*TxIn{
+		{"", -1, "COINBASE"}, // 소유주는 채굴자
+	}
+	txOuts := []*TxOut{
+		{genesisBlockRewarder, minerReward},
+	}
+	tx := Tx{
+		ID:        "",
+		Timestamp: 1231006505,
+		TxIns:     txIns,
+		TxOuts:    txOuts,
+		InputData: "Genesis Block",
+	}
+	tx.getId()
+	return &tx
+}
+
 var ErrorNoMoney = errors.New("not enough money")
 var ErrorNotValid = errors.New("Tx Invalid")
 
@@ -182,6 +201,17 @@ func (m *mempool) AddTx(to string, amount int, inputData string) (*Tx, error) {
 // TxToConfirm 메서드는 확인할 트랜잭션들을 반환
 func (m *mempool) TxToConfirm() []*Tx {
 	coinbase := makeCoinbaseTx(wallet.Wallet().Address)
+	var txs []*Tx
+	for _, tx := range m.Txs {
+		txs = append(txs, tx)
+	}
+	txs = append(txs, coinbase)
+	m.Txs = make(map[string]*Tx) // 빈 map // nil을 넣으면 삭제하는 것과 같아서
+	return txs
+}
+
+func (m *mempool) GenesisTxToConfirm() []*Tx {
+	coinbase := makeGenesisTx(wallet.Wallet().Address)
 	var txs []*Tx
 	for _, tx := range m.Txs {
 		txs = append(txs, tx)
