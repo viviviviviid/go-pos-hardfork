@@ -52,3 +52,10 @@ func ToJSON(i interface{}) []byte {
 	HandleErr(err)
 	return r
 }
+
+// 포인터 주소로부터 값을 가져와 문자열로 표시
+func ToString(i interface{}) string {
+	r, err := json.MarshalIndent(i, "", "    ")
+	HandleErr(err)
+	return string(r)
+}

@@ -55,9 +55,10 @@ type TxOut struct {
 
 // UTxOut는 사용되지 않은 트랜잭션 출력을 나타냅니다.
 type UTxOut struct {
-	TxID   string
-	Index  int
-	Amount int
+	TxID      string
+	Index     int
+	Amount    int
+	InputData string
 }
 
 // getId 메서드는 트랜잭션 ID를 설정합니다. 트랜잭션 struct를 해시화 한걸 id에 삽입
@@ -128,7 +129,7 @@ func makeCoinbaseTx(address string) *Tx {
 	return &tx
 }
 
-func makeGenesisTx(address string) *Tx {
+func makeGenesisTx() *Tx {
 	txIns := []*TxIn{
 		{"", -1, "COINBASE"}, // 소유주는 채굴자
 	}
@@ -211,7 +212,7 @@ func (m *mempool) TxToConfirm() []*Tx {
 }
 
 func (m *mempool) GenesisTxToConfirm() []*Tx {
-	coinbase := makeGenesisTx(wallet.Wallet().Address)
+	coinbase := makeGenesisTx()
 	var txs []*Tx
 	for _, tx := range m.Txs {
 		txs = append(txs, tx)

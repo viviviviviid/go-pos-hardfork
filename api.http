@@ -2,9 +2,9 @@ http://localhost:4000/
 ###
 http://localhost:4002/status
 ###
-http://localhost:4000/balance/6308e20ddaeae91a48a7e07791d5dabb814bae4a1e44595b0253c6051dc1c260cc6d0747370172c0db48aec400f0dbf7badbeada4f585ecd7ef5115e1dddd433
+http://localhost:4000/balance/c0c169399013db563e5b6a07cb207df7bbe782b230bbf6c632f6faf83e618af73ca28a42cdf328400bc19ef47f5a6b10baaa54df719b5356d3eb65453a36c0a5
 ###
-http://localhost:4000/balance/727355b19143e84127a936db88579abf674fefba0bedd7f960a1982169caaf1712ef2f5fda1085f094e4385b1075961b14346532a2aa2c239205d63b7573ae51?total=true
+http://localhost:4000/balance/c0c169399013db563e5b6a07cb207df7bbe782b230bbf6c632f6faf83e618af73ca28a42cdf328400bc19ef47f5a6b10baaa54df719b5356d3eb65453a36c0a5?total=true
 ###
 http://localhost:4001/blocks
 ###
@@ -21,6 +21,12 @@ POST http://localhost:4002/transactions
 }
 ###
 POST http://localhost:4001/stake
+###
+POST http://localhost:4001/unstake
+
+{
+    "address": "c0c169399013db563e5b6a07cb207df7bbe782b230bbf6c632f6faf83e618af73ca28a42cdf328400bc19ef47f5a6b10baaa54df719b5356d3eb65453a36c0a5",
+}
 ### 
 http://localhost:4000/mempool
 ###

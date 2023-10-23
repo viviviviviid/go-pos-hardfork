@@ -2,6 +2,7 @@ package blockchain
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"sync"
 
@@ -32,7 +33,7 @@ var b *blockchain
 var once sync.Once // sync 패키지
 var dbStorage storage = db.DB{}
 
-func (b *blockchain) restore(data []byte) { // ToBytes를 통해 byte화 된걸 다시 되돌림
+func (b *blockchain) restore(data []byte) {
 	utils.FromBytes(b, data)
 }
 
@@ -108,7 +109,7 @@ func UTxOutsByAddress(address string, b *blockchain) []*UTxOut { // Unspent Tx O
 				if output.Address == address {
 					if _, ok := creatorTxs[tx.ID]; !ok { // ok는 이 map안에 값의 유무 bool
 						// input으로 사용하지 않은 트랜잭션 output
-						uTxOut := &UTxOut{tx.ID, index, output.Amount}
+						uTxOut := &UTxOut{tx.ID, index, output.Amount, tx.InputData}
 						if !isOnMempool(uTxOut) { // UTXO의 output을 확인해서, mempool에 있는지 확인
 							uTxOuts = append(uTxOuts, uTxOut)
 						}
@@ -185,4 +186,37 @@ func (b *blockchain) AddPeerBlock(newBlock *Block) {
 			delete(m.Txs, tx.ID)
 		}
 	}
+}
+
+func CheckStaking(address string, targetAddress string, b *blockchain) []*Tx {
+	var Txs []*Tx
+	creatorTxs := make(map[string]bool)
+	for _, block := range Blocks(b) {
+		for _, tx := range block.Transaction {
+			for _, input := range tx.TxIns {
+				if input.Signature == "COINBASE" {
+					break
+				}
+				if FindTx(b, input.TxID).TxOuts[input.Index].Address == address {
+					creatorTxs[input.TxID] = true
+				}
+			}
+			for index, output := range tx.TxOuts {
+				fmt.Println(utils.ToString(index), utils.ToString(output))
+				if output.Address == address {
+					if _, ok := creatorTxs[tx.ID]; !ok {
+						uTxOut := &UTxOut{tx.ID, index, output.Amount, tx.InputData}
+						if !isOnMempool(uTxOut) {
+							Txs = append(Txs, tx)
+						}
+					}
+				}
+			}
+		}
+	}
+	fmt.Println(utils.ToString(Txs))
+	for index, tempName := range Txs { // 이걸로 들쑤시다가 if로 targetAddress인지 확인하고, timestamp 확인하고,
+
+	}
+	return Txs
 }

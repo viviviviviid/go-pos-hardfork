@@ -203,6 +203,14 @@ func stake(rw http.ResponseWriter, r *http.Request) {
 	rw.WriteHeader(http.StatusCreated)
 }
 
+func unstake(rw http.ResponseWriter, r *http.Request) {
+	var payload addPeerPayload
+	json.NewDecoder(r.Body).Decode(&payload)
+	utxoStakingAddress := blockchain.CheckStaking(stakingAddress, payload.Address, blockchain.Blockchain())
+
+	utils.HandleErr(json.NewEncoder(rw).Encode(utxoStakingAddress))
+}
+
 func Start(aPort int) {
 	port = fmt.Sprintf(":%d", aPort)
 	router := mux.NewRouter()                               // Gorilla Dependecy
@@ -218,6 +226,7 @@ func Start(aPort int) {
 	router.HandleFunc("/ws", p2p.Upgrade).Methods("GET")
 	router.HandleFunc("/peer", peers).Methods("GET", "POST")
 	router.HandleFunc("/stake", stake).Methods("POST")
+	router.HandleFunc("/unstake", unstake).Methods("POST")
 	// Gorilla Mux 공식문서에 나와있는대로
 	fmt.Printf("Listening on http://localhost%s\n", port)
 	log.Fatal(http.ListenAndServe(port, router))
