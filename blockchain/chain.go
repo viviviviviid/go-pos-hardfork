@@ -190,6 +190,7 @@ func (b *blockchain) AddPeerBlock(newBlock *Block) {
 
 func CheckStaking(address string, targetAddress string, b *blockchain) []*Tx {
 	var Txs []*Tx
+	var targetAddrTxs []*Tx
 	creatorTxs := make(map[string]bool)
 	for _, block := range Blocks(b) {
 		for _, tx := range block.Transaction {
@@ -202,7 +203,6 @@ func CheckStaking(address string, targetAddress string, b *blockchain) []*Tx {
 				}
 			}
 			for index, output := range tx.TxOuts {
-				fmt.Println(utils.ToString(index), utils.ToString(output))
 				if output.Address == address {
 					if _, ok := creatorTxs[tx.ID]; !ok {
 						uTxOut := &UTxOut{tx.ID, index, output.Amount, tx.InputData}
@@ -214,9 +214,14 @@ func CheckStaking(address string, targetAddress string, b *blockchain) []*Tx {
 			}
 		}
 	}
-	fmt.Println(utils.ToString(Txs))
-	for index, tempName := range Txs { // 이걸로 들쑤시다가 if로 targetAddress인지 확인하고, timestamp 확인하고,
-
+	for _, tx := range Txs { // 이걸로 들쑤시다가 if로 targetAddress인지 확인하고, timestamp 확인하고,
+		for index, txOut := range tx.TxOuts {
+			if txOut.Address == targetAddress && index == 0 {
+				targetAddrTxs = append(targetAddrTxs, tx)
+			}
+		}
 	}
-	return Txs
+	fmt.Println(utils.ToString(targetAddrTxs))
+
+	return targetAddrTxs
 }

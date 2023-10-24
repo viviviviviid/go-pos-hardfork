@@ -25,7 +25,7 @@ POST http://localhost:4001/stake
 POST http://localhost:4001/unstake
 
 {
-    "address": "c0c169399013db563e5b6a07cb207df7bbe782b230bbf6c632f6faf83e618af73ca28a42cdf328400bc19ef47f5a6b10baaa54df719b5356d3eb65453a36c0a5",
+    "address": "c0c169399013db563e5b6a07cb207df7bbe782b230bbf6c632f6faf83e618af73ca28a42cdf328400bc19ef47f5a6b10baaa54df719b5356d3eb65453a36c0a5"
 }
 ### 
 http://localhost:4000/mempool

@@ -15,6 +15,12 @@ import (
 
 var port string
 
+var (
+	ResNotStaked = map[string]string{
+		"message": "Not staked",
+	}
+)
+
 const (
 	stakingAddress = "6308e20ddaeae91a48a7e07791d5dabb814bae4a1e44595b0253c6051dc1c260cc6d0747370172c0db48aec400f0dbf7badbeada4f585ecd7ef5115e1dddd433" // 3000번
 	stakingAmount  = 100
@@ -55,6 +61,10 @@ type addTxPayload struct {
 
 type addPeerPayload struct {
 	Address, Port string
+}
+
+type checkStakingPayload struct {
+	Address string
 }
 
 func (u urlDescription) String() string { // stringer interface는 이렇게 구현해놓은순간부터, URLDescription을 직접 print할경우 return의 내용을 출력해준다.
@@ -204,11 +214,16 @@ func stake(rw http.ResponseWriter, r *http.Request) {
 }
 
 func unstake(rw http.ResponseWriter, r *http.Request) {
-	var payload addPeerPayload
-	json.NewDecoder(r.Body).Decode(&payload)
-	utxoStakingAddress := blockchain.CheckStaking(stakingAddress, payload.Address, blockchain.Blockchain())
-
-	utils.HandleErr(json.NewEncoder(rw).Encode(utxoStakingAddress))
+	var payload checkStakingPayload
+	utils.HandleErr(json.NewDecoder(r.Body).Decode(&payload))
+	targetTxs := blockchain.CheckStaking(stakingAddress, payload.Address, blockchain.Blockchain())
+	if len(targetTxs) == 0 {
+		json.NewEncoder(rw).Encode(ResNotStaked)
+		return
+	}
+	// 유효기간이 지났는지 확인해주는 함수
+	// CheckLockupPeriod(targetTxs)
+	utils.HandleErr(json.NewEncoder(rw).Encode(targetTxs))
 }
 
 func Start(aPort int) {

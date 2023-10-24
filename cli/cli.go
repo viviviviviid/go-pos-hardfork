@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+
 	"github.com/viviviviviid/go-coin/explorer"
 	"github.com/viviviviviid/go-coin/rest"
 )
