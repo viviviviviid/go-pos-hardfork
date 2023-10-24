@@ -59,3 +59,14 @@ func ToString(i interface{}) string {
 	HandleErr(err)
 	return string(r)
 }
+
+func FormatTimeFromSeconds(sec int) string {
+	if sec < 0 {
+		sec = sec * (-1)
+	}
+	days := sec / 86400
+	hours := (sec % 86400) / 3600
+	minutes := (sec % 3600) / 60
+	seconds := sec % 60
+	return fmt.Sprintf("스테이킹 언락까지 %d일 %d시간 %d분 %d초 남았습니다. 인출은 그 이후에 가능합니다.", days, hours, minutes, seconds)
+}

@@ -17,7 +17,10 @@ var port string
 
 var (
 	ResNotStaked = map[string]string{
-		"message": "Not staked",
+		"message": "Not staked.",
+	}
+	ResTimeRemained = map[string]string{
+		"message": "Staking Time is remained.",
 	}
 )
 
@@ -221,9 +224,13 @@ func unstake(rw http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(rw).Encode(ResNotStaked)
 		return
 	}
-	// 유효기간이 지났는지 확인해주는 함수
-	ok := blockchain.CheckLockupPeriod(targetTxs)
-	fmt.Println(ok)
+	ok, remainTime := blockchain.CheckLockupPeriod(targetTxs)
+	if !ok {
+		ResTimeRemained["message"] = utils.FormatTimeFromSeconds(remainTime)
+		utils.HandleErr(json.NewEncoder(rw).Encode(ResTimeRemained))
+		return
+	}
+	// 이제 targetTxs의 UTXO를 이용해서 트랜잭션으로 payload.Address에 100코인 돌려주면 됨.
 	utils.HandleErr(json.NewEncoder(rw).Encode(targetTxs))
 }
 
