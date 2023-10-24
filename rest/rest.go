@@ -222,7 +222,8 @@ func unstake(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// 유효기간이 지났는지 확인해주는 함수
-	// CheckLockupPeriod(targetTxs)
+	ok := blockchain.CheckLockupPeriod(targetTxs)
+	fmt.Println(ok)
 	utils.HandleErr(json.NewEncoder(rw).Encode(targetTxs))
 }
 

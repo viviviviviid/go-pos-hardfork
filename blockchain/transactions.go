@@ -13,6 +13,9 @@ import (
 const (
 	minerReward          int    = 50
 	genesisBlockRewarder string = "6308e20ddaeae91a48a7e07791d5dabb814bae4a1e44595b0253c6051dc1c260cc6d0747370172c0db48aec400f0dbf7badbeada4f585ecd7ef5115e1dddd433"
+	MonthToSec           int    = 2592000
+	WeekToSec            int    = 604800
+	DayToSec             int    = 86400
 )
 
 // mempool은 대기 중인 트랜잭션들을 저장합니다.
@@ -226,4 +229,9 @@ func (m *mempool) AddPeerTx(tx *Tx) {
 	m.m.Lock()
 	defer m.m.Unlock()
 	m.Txs[tx.ID] = tx
+}
+
+func CheckLockupPeriod(txs []*Tx) bool {
+	timestamp := txs[0].Timestamp
+	return int(time.Now().Unix())-timestamp > MonthToSec // 한달 락업 기간이 지났는지 확인
 }
