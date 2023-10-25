@@ -35,13 +35,13 @@ func FindBlock(hash string) (*Block, error) {
 	return block, nil
 }
 
-func createBlock(prevHash string, height int) *Block {
+func createBlock(prevHash string, height int, port string) *Block {
 	block := &Block{
 		Hash:     "",
 		PrevHash: prevHash,
 		Height:   height,
 	}
-	block.Transaction = Mempool().TxToConfirm()
+	block.Transaction = Mempool().TxToConfirm(port)
 	block.Timestamp = int(time.Now().Unix())
 	block.Hash = utils.Hash(b)
 	persistBlock(block)

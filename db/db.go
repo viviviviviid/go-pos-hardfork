@@ -41,7 +41,7 @@ func (DB) DeleteAllBlocks() {
 
 func getDbName() string {
 	port := os.Args[2][6:]
-	return fmt.Sprintf("%s_%s.db", dbName, port)
+	return fmt.Sprintf("./node_dbs/%s_%s.db", dbName, port)
 }
 
 func InitDB() {

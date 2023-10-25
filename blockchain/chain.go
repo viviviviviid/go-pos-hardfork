@@ -41,8 +41,8 @@ func persistBlockchain(b *blockchain) {
 	dbStorage.SaveChain(utils.ToBytes(b))
 }
 
-func (b *blockchain) AddBlock() *Block {
-	block := createBlock(b.NewestHash, b.Height+1)
+func (b *blockchain) AddBlock(port string) *Block {
+	block := createBlock(b.NewestHash, b.Height+1, port)
 	b.NewestHash = block.Hash
 	b.Height = block.Height
 	persistBlockchain(b)
@@ -92,7 +92,7 @@ func FindTx(b *blockchain, targetID string) *Tx { // 특정 트랜잭션 하나�
 }
 
 // input으로 사용되지 않은 output들을 넘겨주는 함수
-func UTxOutsByAddress(address string, b *blockchain) []*UTxOut { // Unspent Tx Output => UTXO ㅋㅋㅋㅋㅋ 이거였네
+func UTxOutsByAddress(address string, b *blockchain) []*UTxOut { // Unspent Tx Output
 	var uTxOuts []*UTxOut
 	creatorTxs := make(map[string]bool) // 사용한 트랜잭션 output -> map 형태
 	for _, block := range Blocks(b) {   // 모든 블럭
@@ -188,6 +188,7 @@ func (b *blockchain) AddPeerBlock(newBlock *Block) {
 	}
 }
 
+// UTXO 형태로 만들어서 내보내기 UTXO에 TimeStamp 키 넣기
 func CheckStaking(address string, targetAddress string, b *blockchain) []*Tx {
 	var Txs []*Tx
 	var targetAddrTxs []*Tx
@@ -222,6 +223,5 @@ func CheckStaking(address string, targetAddress string, b *blockchain) []*Tx {
 		}
 	}
 	fmt.Println(utils.ToString(targetAddrTxs))
-
 	return targetAddrTxs
 }

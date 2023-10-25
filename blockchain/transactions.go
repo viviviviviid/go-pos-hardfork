@@ -70,9 +70,9 @@ func (t *Tx) getId() {
 }
 
 // sign 메서드는 모든 트랜잭션 입력에 대해 서명을 저장합니다.
-func (t *Tx) sign() {
+func (t *Tx) sign(port string) {
 	for _, txIn := range t.TxIns { // 이 트랜잭션의 모든 트랜잭션 input들에 대해 서명을 저장
-		txIn.Signature = wallet.Sign(t.ID, wallet.Wallet()) // 트랜잭션 id에 서명 // t.ID는 Tx struct를 해쉬화한 값
+		txIn.Signature = wallet.Sign(t.ID, wallet.Wallet(port)) // 트랜잭션 id에 서명 // t.ID는 Tx struct를 해쉬화한 값
 	}
 }
 
@@ -154,7 +154,7 @@ var ErrorNoMoney = errors.New("not enough money")
 var ErrorNotValid = errors.New("Tx Invalid")
 
 // makeTx 함수는 일반 트랜잭션을 생성합니다.
-func makeTx(from, to string, amount int, inputData string) (*Tx, error) {
+func makeTx(from, to string, amount int, inputData string, port string) (*Tx, error) {
 	if BalanceByAddress(from, Blockchain()) < amount {
 		return nil, ErrorNoMoney
 	}
@@ -184,7 +184,7 @@ func makeTx(from, to string, amount int, inputData string) (*Tx, error) {
 		InputData: inputData,
 	}
 	tx.getId()
-	tx.sign()
+	tx.sign(port)
 	valid := validate(tx)
 	if !valid {
 		return nil, ErrorNotValid
@@ -192,9 +192,61 @@ func makeTx(from, to string, amount int, inputData string) (*Tx, error) {
 	return tx, nil
 }
 
+// makeTxbyUTXO 함수는 사용하고자 하는 UTXO가 포함된 트랜잭션을 생성합니다.
+func makeTxbyUTXO(from, to string, amount int, inputData string, targetTxs []*Tx, port string) (*Tx, error) {
+
+	if BalanceByAddress(from, Blockchain()) < amount {
+		return nil, ErrorNoMoney
+	}
+	var txOuts []*TxOut
+	var txIns []*TxIn
+	total := 0 // UTXO의 잔액 저장할 곳
+
+	for _, tx := range targetTxs {
+		for index, txOut := range tx.TxOuts {
+			if total >= amount {
+				break
+			}
+
+			txIn := &TxIn{txOut.Address, index, from}
+			txIns = append(txIns, txIn)
+			total += txOut.Amount
+		}
+	}
+	if change := total - amount; change != 0 { // change: 거스름돈 // change가 0이 아니라면 거슬러줘야함
+		changeTxOut := &TxOut{from, change} // 거스름돈 반환
+		txOuts = append(txOuts, changeTxOut)
+	}
+	txOut := &TxOut{to, amount} // 받을사람으르 위한 트랜잭션 output
+	txOuts = append(txOuts, txOut)
+	tx := &Tx{
+		ID:        "",
+		Timestamp: int(time.Now().Unix()),
+		TxIns:     txIns,
+		TxOuts:    txOuts,
+		InputData: inputData,
+	}
+	tx.getId()
+	tx.sign(port)
+	// valid := validate(tx)
+	// if !valid {
+	// 	return nil, ErrorNotValid
+	// }
+	return tx, nil
+}
+
 // AddTx 메서드는 mempool에 트랜잭션을 추가
-func (m *mempool) AddTx(to string, amount int, inputData string) (*Tx, error) {
-	tx, err := makeTx(wallet.Wallet().Address, to, amount, inputData)
+func (m *mempool) AddTx(to string, amount int, inputData string, port string) (*Tx, error) {
+	tx, err := makeTx(wallet.Wallet(port).Address, to, amount, inputData, port)
+	if err != nil {
+		return nil, err
+	}
+	m.Txs[tx.ID] = tx
+	return tx, nil
+}
+
+func (m *mempool) AddTxFromStakingAddress(from string, to string, amount int, inputData string, Txs []*Tx, port string) (*Tx, error) {
+	tx, err := makeTxbyUTXO(from, to, amount, inputData, Txs, port)
 	if err != nil {
 		return nil, err
 	}
@@ -203,8 +255,8 @@ func (m *mempool) AddTx(to string, amount int, inputData string) (*Tx, error) {
 }
 
 // TxToConfirm 메서드는 확인할 트랜잭션들을 반환
-func (m *mempool) TxToConfirm() []*Tx {
-	coinbase := makeCoinbaseTx(wallet.Wallet().Address)
+func (m *mempool) TxToConfirm(port string) []*Tx {
+	coinbase := makeCoinbaseTx(wallet.Wallet(port).Address)
 	var txs []*Tx
 	for _, tx := range m.Txs {
 		txs = append(txs, tx)

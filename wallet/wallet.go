@@ -15,20 +15,20 @@ import (
 )
 
 const (
-	fileName string = "coin.wallet"
+	fileName string = ".wallet"
 )
 
 type fileLayer interface {
-	hasWalletFile() bool
+	hasWalletFile(fileNamebyPort string) bool
 	writeFile(name string, data []byte, perm fs.FileMode) error
 	readFile(name string) ([]byte, error)
 }
 
 type layer struct{}
 
-func (layer) hasWalletFile() bool {
-	_, err := os.Stat(fileName) // 파일이 존재하는지
-	return !os.IsNotExist(err)  // os.Stat에서 받아온 err를 확인하고 지갑 파일이 없다면 true
+func (layer) hasWalletFile(fileNamebyPort string) bool {
+	_, err := os.Stat(fileNamebyPort) // 파일이 존재하는지
+	return !os.IsNotExist(err)        // os.Stat에서 받아온 err를 확인하고 지갑 파일이 없다면 true
 }
 
 func (layer) writeFile(name string, data []byte, perm fs.FileMode) error {
@@ -54,15 +54,16 @@ func createPriveKey() *ecdsa.PrivateKey {
 	return privKey
 }
 
-func persistKey(key *ecdsa.PrivateKey) { // key 저장
+func persistKey(fileNamebyPort string, key *ecdsa.PrivateKey) { // key 저장
 	bytes, err := x509.MarshalECPrivateKey(key) // bytes는 복붙가능하기때문에 변환할 필요없이 파일에 박으면 됨
 	utils.HandleErr(err)
-	err = files.writeFile(fileName, bytes, 0644)
+	fileNamebyPort = "./wallets/" + fileNamebyPort
+	err = files.writeFile(fileNamebyPort, bytes, 0644)
 	utils.HandleErr(err)
 }
 
-func restoreKey() (key *ecdsa.PrivateKey) { // *ecdsa.PrivateKey 형식의 key를 선언 및 초기화
-	keyAsBytes, err := files.readFile(fileName)
+func restoreKey(fileNamebyPort string) (key *ecdsa.PrivateKey) { // *ecdsa.PrivateKey 형식의 key를 선언 및 초기화
+	keyAsBytes, err := files.readFile(fileNamebyPort)
 	utils.HandleErr(err)
 	key, err = x509.ParseECPrivateKey(keyAsBytes) // 이미 함수의 반환 구조에서 초기화되었으므로 key를 갱신만 해줘도 됨.
 	// x509.ParseECPrivateKey를 진행하면 &{Curve, X, Y, D}가 길게 나오는데 이렇게 변환을 해야 ECDSA로써 개인키를 이용할 수 있다.
@@ -116,23 +117,18 @@ func Verify(signature, payload, address string) bool {
 	return ok
 }
 
-func Wallet() *wallet {
+func Wallet(port string) *wallet {
+	fileNamebyPort := port + fileName
 	if w == nil {
 		w = &wallet{}
-
-		// 지갑의 유뮤 확인
-		if files.hasWalletFile() {
-			// 이미 있다면 파일로부터 지갑을 복구
-			w.privateKey = restoreKey()
-
+		if files.hasWalletFile(fileNamebyPort) {
+			w.privateKey = restoreKey(fileNamebyPort)
 		} else {
-			// 없다면 비공개키를 생성해서 파일에 저장
 			key := createPriveKey()
-			persistKey(key)
+			persistKey(fileNamebyPort, key)
 			w.privateKey = key
 		}
 		w.Address = aFromK(w.privateKey)
-
 	}
 	return w
 }
