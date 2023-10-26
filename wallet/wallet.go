@@ -28,7 +28,8 @@ type layer struct{}
 
 func (layer) hasWalletFile(fileNamebyPort string) bool {
 	_, err := os.Stat(fileNamebyPort) // 파일이 존재하는지
-	return !os.IsNotExist(err)        // os.Stat에서 받아온 err를 확인하고 지갑 파일이 없다면 true
+	fmt.Println("err: ", err)
+	return !os.IsNotExist(err) // os.Stat에서 받아온 err를 확인하고 지갑 파일이 없다면 true
 }
 
 func (layer) writeFile(name string, data []byte, perm fs.FileMode) error {
@@ -57,7 +58,6 @@ func createPriveKey() *ecdsa.PrivateKey {
 func persistKey(fileNamebyPort string, key *ecdsa.PrivateKey) { // key 저장
 	bytes, err := x509.MarshalECPrivateKey(key) // bytes는 복붙가능하기때문에 변환할 필요없이 파일에 박으면 됨
 	utils.HandleErr(err)
-	fileNamebyPort = "./wallets/" + fileNamebyPort
 	err = files.writeFile(fileNamebyPort, bytes, 0644)
 	utils.HandleErr(err)
 }
@@ -118,14 +118,14 @@ func Verify(signature, payload, address string) bool {
 }
 
 func Wallet(port string) *wallet {
-	fileNamebyPort := port + fileName
 	if w == nil {
 		w = &wallet{}
-		if files.hasWalletFile(fileNamebyPort) {
-			w.privateKey = restoreKey(fileNamebyPort)
+		path := "./wallets/" + port + fileName
+		if files.hasWalletFile(path) {
+			w.privateKey = restoreKey(path)
 		} else {
 			key := createPriveKey()
-			persistKey(fileNamebyPort, key)
+			persistKey(path, key)
 			w.privateKey = key
 		}
 		w.Address = aFromK(w.privateKey)

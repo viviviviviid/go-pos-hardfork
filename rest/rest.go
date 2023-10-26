@@ -25,7 +25,7 @@ var (
 )
 
 const (
-	stakingAddress   = "847801fc4da79f135e0b43c6d671f847bfa333f549c7590fab55edde65741c77141ff7fabbca2a1b8ed6526f7554262123ce3a1eef53964ddefdbade8080f278" // 3000번
+	stakingAddress   = "e9d11618e700bad8d5aa12d44531036d5995b21cec01443f8dc27a92f3b22ab3b5879eb20980be45ec6fcec5e153842f42d5cf7b5632d12ccdc4160bf19bd270"
 	stakingAmount    = 100
 	unstakingMessage = "unstaked"
 )
