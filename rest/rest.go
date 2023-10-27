@@ -227,12 +227,13 @@ func unstake(rw http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(rw).Encode(ResNotStaked)
 		return
 	}
-	// ok, remainTime := blockchain.CheckLockupPeriod(targetTxs)
-	// if ok {
-	// 	ResTimeRemained["message"] = utils.FormatTimeFromSeconds(remainTime)
-	// 	utils.HandleErr(json.NewEncoder(rw).Encode(ResTimeRemained)) // 노드에도 보내줘야함. message.go와 handler
-	// 	return
-	// }
+	ok, remainTime := blockchain.CheckLockupPeriod(stakingInfo.TimeStamp)
+	fmt.Println(ok, remainTime)
+	if !ok {
+		ResTimeRemained["message"] = utils.FormatTimeFromSeconds(remainTime)
+		utils.HandleErr(json.NewEncoder(rw).Encode(ResTimeRemained)) // 노드에도 보내줘야함. message.go와 handler
+		return
+	}
 
 	// tx, err := blockchain.Mempool().AddTxFromStakingAddress(stakingAddress, myAddress, stakingAmount, unstakingMessage, targetTxs)
 	// if err != nil {

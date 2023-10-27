@@ -283,9 +283,8 @@ func (m *mempool) AddPeerTx(tx *Tx) {
 	m.Txs[tx.ID] = tx
 }
 
-func CheckLockupPeriod(txs []*Tx) (ok bool, gapTime int) {
-	timestamp := txs[0].Timestamp
-	gapTime = int(time.Now().Unix()) - timestamp
+func CheckLockupPeriod(timeStamp int) (ok bool, gapTime int) {
+	gapTime = int(time.Now().Unix()) - timeStamp
 	if gapTime > MonthToSec { // 한달 락업 기간이 지났는지 확인
 		return true, 0
 	}
