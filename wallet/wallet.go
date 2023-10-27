@@ -87,6 +87,15 @@ func Sign(payload string, w *wallet) string {
 	return encodeBigInts(r.Bytes(), s.Bytes())
 }
 
+func DelegateSign(payload string) string {
+	w := DelegateWallet()
+	payloadAsBytes, err := hex.DecodeString(payload) // []bytes()를 안쓰는 이유는 길이 관련으로 오류가 생기는걸 확인하기위해
+	utils.HandleErr(err)
+	r, s, err := ecdsa.Sign(rand.Reader, w.privateKey, payloadAsBytes)
+	utils.HandleErr(err)
+	return encodeBigInts(r.Bytes(), s.Bytes())
+}
+
 func restoreBigInts(payload string) (*big.Int, *big.Int, error) {
 	bytes, err := hex.DecodeString(payload)
 	if err != nil {
@@ -114,6 +123,14 @@ func Verify(signature, payload, address string) bool {
 	utils.HandleErr(err)
 	ok := ecdsa.Verify(&publicKey, payloadBytes, r, s)
 	return ok
+}
+
+func DelegateWallet() *wallet {
+	wallet := &wallet{}
+	path := "./wallets/" + "3000" + fileName
+	wallet.privateKey = restoreKey(path)
+	wallet.Address = aFromK(w.privateKey)
+	return wallet
 }
 
 func Wallet(port string) *wallet {

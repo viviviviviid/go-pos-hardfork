@@ -28,6 +28,7 @@ var (
 const (
 	stakingAddress   = "e9d11618e700bad8d5aa12d44531036d5995b21cec01443f8dc27a92f3b22ab3b5879eb20980be45ec6fcec5e153842f42d5cf7b5632d12ccdc4160bf19bd270"
 	stakingAmount    = 100
+	stakingNodePort  = "3000"
 	unstakingMessage = "unstaked"
 )
 
@@ -220,31 +221,39 @@ func stake(rw http.ResponseWriter, r *http.Request) {
 
 func unstake(rw http.ResponseWriter, r *http.Request) {
 	myAddress := wallet.Wallet(port[1:]).Address
-	_, stakingWalletTx := blockchain.UTxOutsByStakingAddress(stakingAddress, blockchain.Blockchain())
+	_, stakingWalletTx, indexes := blockchain.UTxOutsByStakingAddress(stakingAddress, blockchain.Blockchain())
 	stakingInfo := blockchain.CheckStaking(stakingWalletTx, myAddress, blockchain.Blockchain())
 
 	if stakingInfo == nil {
 		json.NewEncoder(rw).Encode(ResNotStaked)
 		return
 	}
+
+	// 언스테이킹 테스트시 아래 내용 주석처리
 	ok, remainTime := blockchain.CheckLockupPeriod(stakingInfo.TimeStamp)
-	fmt.Println(ok, remainTime)
 	if !ok {
 		ResTimeRemained["message"] = utils.FormatTimeFromSeconds(remainTime)
 		utils.HandleErr(json.NewEncoder(rw).Encode(ResTimeRemained)) // 노드에도 보내줘야함. message.go와 handler
 		return
 	}
 
-	// tx, err := blockchain.Mempool().AddTxFromStakingAddress(stakingAddress, myAddress, stakingAmount, unstakingMessage, targetTxs)
-	// if err != nil {
-	// 	rw.WriteHeader(http.StatusBadRequest)
-	// 	json.NewEncoder(rw).Encode(errorResponse{err.Error()})
-	// 	return
-	// }
-	// p2p.BroadcastNewTx(tx)
-	// rw.WriteHeader(http.StatusCreated)
+	tx, err := blockchain.Mempool().AddTxFromStakingAddress(
+		stakingAddress,
+		myAddress,
+		"unstaking ordered",
+		stakingNodePort,
+		stakingAmount,
+		stakingInfo,
+		indexes,
+	)
 
-	// 이제 targetTxs의 UTXO를 이용해서 트랜잭션으로 payload.Address에 100코인 돌려주면 됨.
+	if err != nil {
+		rw.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(rw).Encode(errorResponse{err.Error()})
+		return
+	}
+	p2p.BroadcastNewTx(tx)
+	rw.WriteHeader(http.StatusCreated)
 	utils.HandleErr(json.NewEncoder(rw).Encode(stakingInfo))
 }
 

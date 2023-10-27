@@ -76,6 +76,12 @@ func (t *Tx) sign(port string) {
 	}
 }
 
+func (t *Tx) delegateSign() {
+	for _, txIn := range t.TxIns { // 이 트랜잭션의 모든 트랜잭션 input들에 대해 서명을 저장
+		txIn.Signature = wallet.DelegateSign(t.ID) // 트랜잭션 id에 서명 // t.ID는 Tx struct를 해쉬화한 값
+	}
+}
+
 // validate 함수는 트랜잭션의 유효성을 검증합니다.
 // 트랜잭션 만든 사람을 검증 // 즉 transaction output을 소유한 사람을 검증
 // output으로 트잭을 만들 수 있기 때문 -> 왜냐면 output이 다음 트잭의 input이라서
@@ -193,31 +199,17 @@ func makeTx(from, to string, amount int, inputData string, port string) (*Tx, er
 }
 
 // makeTxbyUTXO 함수는 사용하고자 하는 UTXO가 포함된 트랜잭션을 생성합니다.
-func makeTxbyUTXO(from, to string, amount int, inputData string, targetTxs []*Tx, port string) (*Tx, error) {
-
+func makeTxbyUTXO(from, to, inputData, mainPort string, amount int, sInfo *stakingInfo, indexes []int) (*Tx, error) {
 	if BalanceByAddress(from, Blockchain()) < amount {
 		return nil, ErrorNoMoney
 	}
 	var txOuts []*TxOut
 	var txIns []*TxIn
-	total := 0 // UTXO의 잔액 저장할 곳
 
-	for _, tx := range targetTxs {
-		for index, txOut := range tx.TxOuts {
-			if total >= amount {
-				break
-			}
+	txIn := &TxIn{sInfo.ID, indexes[0], from}
+	txIns = append(txIns, txIn)
 
-			txIn := &TxIn{txOut.Address, index, from}
-			txIns = append(txIns, txIn)
-			total += txOut.Amount
-		}
-	}
-	if change := total - amount; change != 0 { // change: 거스름돈 // change가 0이 아니라면 거슬러줘야함
-		changeTxOut := &TxOut{from, change} // 거스름돈 반환
-		txOuts = append(txOuts, changeTxOut)
-	}
-	txOut := &TxOut{to, amount} // 받을사람으르 위한 트랜잭션 output
+	txOut := &TxOut{to, amount} // 받을사람을 위한 트랜잭션 output
 	txOuts = append(txOuts, txOut)
 	tx := &Tx{
 		ID:        "",
@@ -227,11 +219,11 @@ func makeTxbyUTXO(from, to string, amount int, inputData string, targetTxs []*Tx
 		InputData: inputData,
 	}
 	tx.getId()
-	tx.sign(port)
-	// valid := validate(tx)
-	// if !valid {
-	// 	return nil, ErrorNotValid
-	// }
+	tx.delegateSign()
+	valid := validate(tx)
+	if !valid {
+		return nil, ErrorNotValid
+	}
 	return tx, nil
 }
 
@@ -245,8 +237,16 @@ func (m *mempool) AddTx(to string, amount int, inputData string, port string) (*
 	return tx, nil
 }
 
-func (m *mempool) AddTxFromStakingAddress(from string, to string, amount int, inputData string, Txs []*Tx, port string) (*Tx, error) {
-	tx, err := makeTxbyUTXO(from, to, amount, inputData, Txs, port)
+func (m *mempool) AddTxFromStakingAddress(from, to, inputData, mainPort string, amount int, sInfo *stakingInfo, indexes []int) (*Tx, error) {
+	tx, err := makeTxbyUTXO(
+		from,
+		to,
+		inputData,
+		mainPort,
+		amount,
+		sInfo,
+		indexes,
+	)
 	if err != nil {
 		return nil, err
 	}

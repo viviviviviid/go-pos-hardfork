@@ -189,9 +189,10 @@ func (b *blockchain) AddPeerBlock(newBlock *Block) {
 }
 
 // UTXO 형태로 만들어서 내보내기 UTXO에 TimeStamp 키 넣기
-func UTxOutsByStakingAddress(stakingAddress string, b *blockchain) ([]*UTxOut, []*Tx) {
+func UTxOutsByStakingAddress(stakingAddress string, b *blockchain) ([]*UTxOut, []*Tx, []int) {
 	var uTxOuts []*UTxOut
 	var Txs []*Tx
+	var indexes []int
 
 	creatorTxs := make(map[string]bool)
 	for _, block := range Blocks(b) {
@@ -205,11 +206,12 @@ func UTxOutsByStakingAddress(stakingAddress string, b *blockchain) ([]*UTxOut, [
 				}
 			}
 			for index, output := range tx.TxOuts {
-				if output.Address == stakingAddress && output.Amount == 100 {
+				if output.Address == stakingAddress && output.Amount == 100 { // 제대로 스테이킹 했는지 확인
 					if _, ok := creatorTxs[tx.ID]; !ok {
 						uTxOut := &UTxOut{tx.ID, index, output.Amount, tx.InputData}
 						if !isOnMempool(uTxOut) {
 							uTxOuts = append(uTxOuts, uTxOut)
+							indexes = append(indexes, index)
 							Txs = append(Txs, tx)
 						}
 					}
@@ -217,8 +219,7 @@ func UTxOutsByStakingAddress(stakingAddress string, b *blockchain) ([]*UTxOut, [
 			}
 		}
 	}
-
-	return uTxOuts, Txs
+	return uTxOuts, Txs, indexes
 }
 
 func CheckStaking(Txs []*Tx, targetAddress string, b *blockchain) *stakingInfo {
