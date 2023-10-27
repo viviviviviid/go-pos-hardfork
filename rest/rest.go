@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+
 	"github.com/viviviviviid/go-coin/blockchain"
 	"github.com/viviviviviid/go-coin/p2p"
 	"github.com/viviviviviid/go-coin/utils"
@@ -219,11 +220,13 @@ func stake(rw http.ResponseWriter, r *http.Request) {
 
 func unstake(rw http.ResponseWriter, r *http.Request) {
 	myAddress := wallet.Wallet(port[1:]).Address
-	targetTxs := blockchain.CheckStaking(stakingAddress, myAddress, blockchain.Blockchain())
-	// if len(targetTxs) == 0 {
-	// 	json.NewEncoder(rw).Encode(ResNotStaked)
-	// 	return
-	// }
+	_, stakingWalletTx := blockchain.UTxOutsByStakingAddress(stakingAddress, blockchain.Blockchain())
+	stakingInfo := blockchain.CheckStaking(stakingWalletTx, myAddress, blockchain.Blockchain())
+
+	if stakingInfo == nil {
+		json.NewEncoder(rw).Encode(ResNotStaked)
+		return
+	}
 	// ok, remainTime := blockchain.CheckLockupPeriod(targetTxs)
 	// if ok {
 	// 	ResTimeRemained["message"] = utils.FormatTimeFromSeconds(remainTime)
@@ -241,7 +244,7 @@ func unstake(rw http.ResponseWriter, r *http.Request) {
 	// rw.WriteHeader(http.StatusCreated)
 
 	// 이제 targetTxs의 UTXO를 이용해서 트랜잭션으로 payload.Address에 100코인 돌려주면 됨.
-	utils.HandleErr(json.NewEncoder(rw).Encode(targetTxs))
+	utils.HandleErr(json.NewEncoder(rw).Encode(stakingInfo))
 }
 
 func Start(aPort int) {

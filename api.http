@@ -2,15 +2,15 @@ http://localhost:4000/
 ###
 http://localhost:4002/status
 ###
-http://localhost:4001/balance/6308e20ddaeae91a48a7e07791d5dabb814bae4a1e44595b0253c6051dc1c260cc6d0747370172c0db48aec400f0dbf7badbeada4f585ecd7ef5115e1dddd433
+http://localhost:4001/balance/e9d11618e700bad8d5aa12d44531036d5995b21cec01443f8dc27a92f3b22ab3b5879eb20980be45ec6fcec5e153842f42d5cf7b5632d12ccdc4160bf19bd270
 ###
-http://localhost:4001/balance/c0c169399013db563e5b6a07cb207df7bbe782b230bbf6c632f6faf83e618af73ca28a42cdf328400bc19ef47f5a6b10baaa54df719b5356d3eb65453a36c0a5?total=true
+http://localhost:4001/balance/e9d11618e700bad8d5aa12d44531036d5995b21cec01443f8dc27a92f3b22ab3b5879eb20980be45ec6fcec5e153842f42d5cf7b5632d12ccdc4160bf19bd270?total=true
 ###
 http://localhost:4001/blocks
 ###
-http://localhost:4000/wallet
+http://localhost:4001/wallet
 ###
-POST http://localhost:4001/blocks
+POST http://localhost:3000/blocks
 ###
 POST http://localhost:4002/transactions
 

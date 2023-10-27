@@ -2,7 +2,6 @@ package blockchain
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"sync"
 
@@ -10,15 +9,16 @@ import (
 	"github.com/viviviviviid/go-coin/utils"
 )
 
-// const (
-// 	blockInterval int = 2 // 2분마다 한개 생성하는것을 목표로 잡음
-// 	allowedRange  int = 2 // expectedTime과의 Gap차이 허용 구간
-// )
-
 type blockchain struct {
 	NewestHash string `json:"newestHash"`
 	Height     int    `json:"height"`
 	m          sync.Mutex
+}
+
+type stakingInfo struct {
+	ID        string
+	Port      string
+	TimeStamp int
 }
 
 type storage interface {
@@ -189,9 +189,10 @@ func (b *blockchain) AddPeerBlock(newBlock *Block) {
 }
 
 // UTXO 형태로 만들어서 내보내기 UTXO에 TimeStamp 키 넣기
-func CheckStaking(address string, targetAddress string, b *blockchain) []*Tx {
+func UTxOutsByStakingAddress(stakingAddress string, b *blockchain) ([]*UTxOut, []*Tx) {
+	var uTxOuts []*UTxOut
 	var Txs []*Tx
-	var targetAddrTxs []*Tx
+
 	creatorTxs := make(map[string]bool)
 	for _, block := range Blocks(b) {
 		for _, tx := range block.Transaction {
@@ -199,15 +200,16 @@ func CheckStaking(address string, targetAddress string, b *blockchain) []*Tx {
 				if input.Signature == "COINBASE" {
 					break
 				}
-				if FindTx(b, input.TxID).TxOuts[input.Index].Address == address {
+				if FindTx(b, input.TxID).TxOuts[input.Index].Address == stakingAddress {
 					creatorTxs[input.TxID] = true
 				}
 			}
 			for index, output := range tx.TxOuts {
-				if output.Address == address {
+				if output.Address == stakingAddress && output.Amount == 100 {
 					if _, ok := creatorTxs[tx.ID]; !ok {
 						uTxOut := &UTxOut{tx.ID, index, output.Amount, tx.InputData}
 						if !isOnMempool(uTxOut) {
+							uTxOuts = append(uTxOuts, uTxOut)
 							Txs = append(Txs, tx)
 						}
 					}
@@ -215,13 +217,21 @@ func CheckStaking(address string, targetAddress string, b *blockchain) []*Tx {
 			}
 		}
 	}
-	for _, tx := range Txs { // 이걸로 들쑤시다가 if로 targetAddress인지 확인하고, timestamp 확인하고,
-		for index, txOut := range tx.TxOuts {
-			if txOut.Address == targetAddress && index == 0 {
-				targetAddrTxs = append(targetAddrTxs, tx)
+
+	return uTxOuts, Txs
+}
+
+func CheckStaking(Txs []*Tx, targetAddress string, b *blockchain) *stakingInfo {
+	var sInfo *stakingInfo
+	for _, tx := range Txs {
+		for _, input := range tx.TxIns {
+			if input.Signature == "COINBASE" {
+				break
+			}
+			if FindTx(b, input.TxID).TxOuts[input.Index].Address == targetAddress {
+				sInfo = &stakingInfo{tx.ID, tx.InputData, tx.Timestamp}
 			}
 		}
 	}
-	fmt.Println(utils.ToString(targetAddrTxs))
-	return targetAddrTxs
+	return sInfo
 }

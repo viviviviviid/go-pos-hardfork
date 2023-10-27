@@ -28,8 +28,7 @@ type layer struct{}
 
 func (layer) hasWalletFile(fileNamebyPort string) bool {
 	_, err := os.Stat(fileNamebyPort) // 파일이 존재하는지
-	fmt.Println("err: ", err)
-	return !os.IsNotExist(err) // os.Stat에서 받아온 err를 확인하고 지갑 파일이 없다면 true
+	return !os.IsNotExist(err)        // os.Stat에서 받아온 err를 확인하고 지갑 파일이 없다면 true
 }
 
 func (layer) writeFile(name string, data []byte, perm fs.FileMode) error {
