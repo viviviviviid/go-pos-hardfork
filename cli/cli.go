@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/viviviviviid/go-coin/pos"
 	"github.com/viviviviviid/go-coin/rest"
 )
 
@@ -27,7 +28,9 @@ func Start() {
 
 	switch *mode {
 	case "rest":
+		go pos.Selector()
 		rest.Start(*port)
+
 	// case "html":
 	// 	explorer.Start(*port)
 	// case "both":

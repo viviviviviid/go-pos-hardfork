@@ -15,7 +15,7 @@ type blockchain struct {
 	m          sync.Mutex
 }
 
-type stakingInfo struct {
+type StakingInfo struct {
 	ID        string
 	Address   string
 	Port      string
@@ -223,21 +223,21 @@ func UTxOutsByStakingAddress(stakingAddress string, b *blockchain) ([]*UTxOut, [
 	return uTxOuts, Txs, indexes
 }
 
-func GetStakingList(Txs []*Tx, b *blockchain) []*stakingInfo {
-	var sInfos []*stakingInfo
+func GetStakingList(Txs []*Tx, b *blockchain) []*StakingInfo {
+	var sInfos []*StakingInfo
 	var stakerAddr string
 	for _, tx := range Txs {
 		for _, input := range tx.TxIns {
 			stakerAddr = FindTx(b, input.TxID).TxOuts[input.Index].Address
 		}
-		sInfo := &stakingInfo{tx.ID, stakerAddr, tx.InputData, tx.Timestamp}
+		sInfo := &StakingInfo{tx.ID, stakerAddr, tx.InputData, tx.Timestamp}
 		sInfos = append(sInfos, sInfo)
 	}
 	return sInfos
 }
 
-func CheckStaking(stakingInfoList []*stakingInfo, targetAddress string) *stakingInfo {
-	var sInfo *stakingInfo
+func CheckStaking(stakingInfoList []*StakingInfo, targetAddress string) *StakingInfo {
+	var sInfo *StakingInfo
 	for _, info := range stakingInfoList {
 		if info.Address == targetAddress {
 			sInfo = info

@@ -10,6 +10,7 @@ import (
 
 	"github.com/viviviviviid/go-coin/blockchain"
 	"github.com/viviviviviid/go-coin/p2p"
+
 	"github.com/viviviviviid/go-coin/utils"
 	"github.com/viviviviviid/go-coin/wallet"
 )
@@ -149,7 +150,7 @@ func status(rw http.ResponseWriter, r *http.Request) {
 	blockchain.Status(blockchain.Blockchain(), rw)
 }
 
-func jsonContentTypeMiddleware(next http.Handler) http.Handler { //
+func jsonContentTypeMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		rw.Header().Add("Content-Type", "application/json") // json으로 인지하도록 설정
 		next.ServeHTTP(rw, r)
@@ -228,24 +229,19 @@ func unstake(rw http.ResponseWriter, r *http.Request) {
 	stakingInfoList := blockchain.GetStakingList(stakingWalletTx, blockchain.Blockchain())
 	myStakingInfo := blockchain.CheckStaking(stakingInfoList, myAddress)
 
-	fmt.Println("stakingInfoList: ", utils.ToString(stakingInfoList))
-	fmt.Println("myStakingInfo: ", utils.ToString(myStakingInfo))
-
 	if myStakingInfo == nil {
 		json.NewEncoder(rw).Encode(ResNotStaked)
 		return
 	}
 
-	// 언스테이킹 테스트시 아래 내용 주석처리
 	ok, remainTime := blockchain.CheckLockupPeriod(myStakingInfo.TimeStamp)
 	if !ok {
 		ResTimeRemained["message"] = utils.FormatTimeFromSeconds(remainTime)
-		utils.HandleErr(json.NewEncoder(rw).Encode(ResTimeRemained)) // 노드에도 보내줘야함. message.go와 handler
+		utils.HandleErr(json.NewEncoder(rw).Encode(ResTimeRemained))
 		return
 	}
 
 	tx, err := blockchain.Mempool().AddTxFromStakingAddress(stakingAddress, myAddress, "unstaking ordered", stakingNodePort, stakingAmount, myStakingInfo, indexes)
-
 	if err != nil {
 		rw.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(rw).Encode(errorResponse{err.Error()})
@@ -254,6 +250,12 @@ func unstake(rw http.ResponseWriter, r *http.Request) {
 	p2p.BroadcastNewTx(tx)
 	rw.WriteHeader(http.StatusCreated)
 	utils.HandleErr(json.NewEncoder(rw).Encode(ResUnstakeDone))
+}
+
+func checkStaking(rw http.ResponseWriter, r *http.Request) {
+	_, stakingWalletTx, _ := blockchain.UTxOutsByStakingAddress(stakingAddress, blockchain.Blockchain())
+	stakingInfoList := blockchain.GetStakingList(stakingWalletTx, blockchain.Blockchain())
+	utils.HandleErr(json.NewEncoder(rw).Encode(stakingInfoList))
 }
 
 func Start(aPort int) {
@@ -272,6 +274,7 @@ func Start(aPort int) {
 	router.HandleFunc("/peer", peers).Methods("GET", "POST")
 	router.HandleFunc("/stake", stake).Methods("POST")
 	router.HandleFunc("/unstake", unstake).Methods("POST")
+	router.HandleFunc("/staking", checkStaking).Methods("GET")
 	// Gorilla Mux 공식문서에 나와있는대로
 	fmt.Printf("Listening on http://localhost%s\n", port)
 	log.Fatal(http.ListenAndServe(port, router))

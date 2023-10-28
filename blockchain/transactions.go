@@ -199,7 +199,7 @@ func makeTx(from, to string, amount int, inputData string, port string) (*Tx, er
 }
 
 // makeTxbyUTXO 함수는 사용하고자 하는 UTXO가 포함된 트랜잭션을 생성합니다.
-func makeTxbyUTXO(from, to, inputData, mainPort string, amount int, sInfo *stakingInfo, indexes []int) (*Tx, error) {
+func makeTxbyUTXO(from, to, inputData, mainPort string, amount int, sInfo *StakingInfo, indexes []int) (*Tx, error) {
 	if BalanceByAddress(from, Blockchain()) < amount {
 		return nil, ErrorNoMoney
 	}
@@ -237,7 +237,7 @@ func (m *mempool) AddTx(to string, amount int, inputData string, port string) (*
 	return tx, nil
 }
 
-func (m *mempool) AddTxFromStakingAddress(from, to, inputData, mainPort string, amount int, sInfo *stakingInfo, indexes []int) (*Tx, error) {
+func (m *mempool) AddTxFromStakingAddress(from, to, inputData, mainPort string, amount int, sInfo *StakingInfo, indexes []int) (*Tx, error) {
 	tx, err := makeTxbyUTXO(
 		from,
 		to,
