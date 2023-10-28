@@ -24,7 +24,10 @@ var (
 		"message": "Staking Time is remained.",
 	}
 	ResUnstakeDone = map[string]string{
-		"message": "Unstaking Transaction added to mempool.",
+		"message": "Unstaking Transaction is added to mempool.",
+	}
+	ResStakeDone = map[string]string{
+		"message": "Staking Transaction is added to mempool.",
 	}
 )
 
@@ -216,6 +219,7 @@ func stake(rw http.ResponseWriter, r *http.Request) {
 	}
 	p2p.BroadcastNewTx(tx)
 	rw.WriteHeader(http.StatusCreated)
+	utils.HandleErr(json.NewEncoder(rw).Encode(ResStakeDone))
 }
 
 func unstake(rw http.ResponseWriter, r *http.Request) {
