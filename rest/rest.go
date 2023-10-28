@@ -23,6 +23,9 @@ var (
 	ResTimeRemained = map[string]string{
 		"message": "Staking Time is remained.",
 	}
+	ResUnstakeDone = map[string]string{
+		"message": "Unstaking Transaction added to mempool.",
+	}
 )
 
 const (
@@ -67,10 +70,6 @@ type addTxPayload struct {
 
 type addPeerPayload struct {
 	Address, Port string
-}
-
-type checkStakingPayload struct {
-	Address string
 }
 
 func (u urlDescription) String() string { // stringer interface는 이렇게 구현해놓은순간부터, URLDescription을 직접 print할경우 return의 내용을 출력해준다.
@@ -222,30 +221,26 @@ func stake(rw http.ResponseWriter, r *http.Request) {
 func unstake(rw http.ResponseWriter, r *http.Request) {
 	myAddress := wallet.Wallet(port[1:]).Address
 	_, stakingWalletTx, indexes := blockchain.UTxOutsByStakingAddress(stakingAddress, blockchain.Blockchain())
-	stakingInfo := blockchain.CheckStaking(stakingWalletTx, myAddress, blockchain.Blockchain())
+	stakingInfoList := blockchain.GetStakingList(stakingWalletTx, blockchain.Blockchain())
+	myStakingInfo := blockchain.CheckStaking(stakingInfoList, myAddress)
 
-	if stakingInfo == nil {
+	fmt.Println("stakingInfoList: ", utils.ToString(stakingInfoList))
+	fmt.Println("myStakingInfo: ", utils.ToString(myStakingInfo))
+
+	if myStakingInfo == nil {
 		json.NewEncoder(rw).Encode(ResNotStaked)
 		return
 	}
 
 	// 언스테이킹 테스트시 아래 내용 주석처리
-	ok, remainTime := blockchain.CheckLockupPeriod(stakingInfo.TimeStamp)
+	ok, remainTime := blockchain.CheckLockupPeriod(myStakingInfo.TimeStamp)
 	if !ok {
 		ResTimeRemained["message"] = utils.FormatTimeFromSeconds(remainTime)
 		utils.HandleErr(json.NewEncoder(rw).Encode(ResTimeRemained)) // 노드에도 보내줘야함. message.go와 handler
 		return
 	}
 
-	tx, err := blockchain.Mempool().AddTxFromStakingAddress(
-		stakingAddress,
-		myAddress,
-		"unstaking ordered",
-		stakingNodePort,
-		stakingAmount,
-		stakingInfo,
-		indexes,
-	)
+	tx, err := blockchain.Mempool().AddTxFromStakingAddress(stakingAddress, myAddress, "unstaking ordered", stakingNodePort, stakingAmount, myStakingInfo, indexes)
 
 	if err != nil {
 		rw.WriteHeader(http.StatusBadRequest)
@@ -254,7 +249,7 @@ func unstake(rw http.ResponseWriter, r *http.Request) {
 	}
 	p2p.BroadcastNewTx(tx)
 	rw.WriteHeader(http.StatusCreated)
-	utils.HandleErr(json.NewEncoder(rw).Encode(stakingInfo))
+	utils.HandleErr(json.NewEncoder(rw).Encode(ResUnstakeDone))
 }
 
 func Start(aPort int) {

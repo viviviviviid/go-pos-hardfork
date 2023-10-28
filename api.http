@@ -8,7 +8,7 @@ http://localhost:4001/balance/e9d11618e700bad8d5aa12d44531036d5995b21cec01443f8d
 ###
 http://localhost:4003/blocks
 ###
-http://localhost:4001/wallet
+http://localhost:4002/wallet
 ###
 POST http://localhost:4002/blocks
 ###
@@ -20,9 +20,9 @@ POST http://localhost:4002/transactions
     "inputData":"any string"
 }
 ###
-POST http://localhost:4001/stake
+POST http://localhost:4002/stake
 ###
-POST http://localhost:4001/unstake
+POST http://localhost:4002/unstake
 ### 
 http://localhost:4001/mempool
 ###

@@ -17,6 +17,7 @@ type blockchain struct {
 
 type stakingInfo struct {
 	ID        string
+	Address   string
 	Port      string
 	TimeStamp int
 }
@@ -222,16 +223,24 @@ func UTxOutsByStakingAddress(stakingAddress string, b *blockchain) ([]*UTxOut, [
 	return uTxOuts, Txs, indexes
 }
 
-func CheckStaking(Txs []*Tx, targetAddress string, b *blockchain) *stakingInfo {
-	var sInfo *stakingInfo
+func GetStakingList(Txs []*Tx, b *blockchain) []*stakingInfo {
+	var sInfos []*stakingInfo
+	var stakerAddr string
 	for _, tx := range Txs {
 		for _, input := range tx.TxIns {
-			if input.Signature == "COINBASE" {
-				break
-			}
-			if FindTx(b, input.TxID).TxOuts[input.Index].Address == targetAddress {
-				sInfo = &stakingInfo{tx.ID, tx.InputData, tx.Timestamp}
-			}
+			stakerAddr = FindTx(b, input.TxID).TxOuts[input.Index].Address
+		}
+		sInfo := &stakingInfo{tx.ID, stakerAddr, tx.InputData, tx.Timestamp}
+		sInfos = append(sInfos, sInfo)
+	}
+	return sInfos
+}
+
+func CheckStaking(stakingInfoList []*stakingInfo, targetAddress string) *stakingInfo {
+	var sInfo *stakingInfo
+	for _, info := range stakingInfoList {
+		if info.Address == targetAddress {
+			sInfo = info
 		}
 	}
 	return sInfo
