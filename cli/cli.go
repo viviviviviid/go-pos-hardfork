@@ -31,7 +31,7 @@ func Start() {
 		go pos.Selector()
 		rest.Start(*port)
 
-	// case "html":
+	// case "html":vscode-file://vscode-app/Applications/Visual%20Studio%20Code.app/Contents/Resources/app/out/vs/code/electron-sandbox/workbench/workbench.html
 	// 	explorer.Start(*port)
 	// case "both":
 	// 	go explorer.Start(*port)
