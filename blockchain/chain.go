@@ -43,6 +43,7 @@ func persistBlockchain(b *blockchain) {
 }
 
 func (b *blockchain) AddBlock(port string) *Block {
+
 	block := createBlock(b.NewestHash, b.Height+1, port)
 	b.NewestHash = block.Hash
 	b.Height = block.Height
@@ -124,7 +125,6 @@ func UTxOutsByAddress(address string, b *blockchain) []*UTxOut { // Unspent Tx O
 }
 
 func BalanceByAddress(address string, b *blockchain) int {
-	// TxOutsByAddress로부터 합산된 잔액으로 만들어주는 함수
 	txOuts := UTxOutsByAddress(address, b)
 	var amount int
 	for _, txOut := range txOuts {
@@ -137,15 +137,14 @@ func Blockchain() *blockchain {
 	once.Do(func() {
 		b = &blockchain{
 			Height: 0,
-		} // 새로 만든 텅빈 블록체인
+		}
 		checkpoint := dbStorage.LoadChain()
-		// search for checkpoint on the db
+
 		if checkpoint == nil {
 			b.AddGenesisBlock()
-		} else { // checkpoint가 있다면
-			// restore b from bytes
-			// checkpoint가 있다면 새로 생성하는 것이 아닌 db로부터 블록체인을 복원
-			b.restore(checkpoint) // ToBytes를 통해 byte화 된걸 다시 되돌림
+			// @@@@@@@@@@@ AddGenesisBlock 여기에 체인이 역할을 선택해서 해당 노드들로 전파 @@@@@@@@
+		} else {
+			b.restore(checkpoint)
 		}
 	})
 	return b

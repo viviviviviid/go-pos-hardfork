@@ -148,3 +148,13 @@ func Wallet(port string) *wallet {
 	}
 	return w
 }
+
+func MainWallet() *wallet {
+	w = &wallet{}
+	path := "./wallets/" + "3000" + fileName
+	if files.hasWalletFile(path) {
+		w.privateKey = restoreKey(path)
+		w.Address = aFromK(w.privateKey)
+	}
+	return w
+}

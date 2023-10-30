@@ -7,12 +7,22 @@ import (
 	"github.com/viviviviviid/go-coin/utils"
 )
 
+type RoleInfo struct {
+	MinerAddress            string
+	MinerPort               string
+	MinerSelectedHeight     int
+	ValidatorAddress        string
+	ValidatorPort           string
+	ValidatorSelectedHeight int
+}
+
 type Block struct {
 	Hash        string `json:"hash"`
 	PrevHash    string `json:"prevHash,omitempty"` // omitempty option
 	Height      int    `json:"height"`
 	Timestamp   int    `json:"timestamp"`
 	Transaction []*Tx  `json:"transaction"`
+	RoleInfo    *RoleInfo
 }
 
 func persistBlock(b *Block) {
@@ -49,6 +59,15 @@ func createBlock(prevHash string, height int, port string) *Block {
 }
 
 func createGenesisBlock() *Block {
+	// defer b.Selector()
+	roleInfo := &RoleInfo{
+		MinerAddress:            "Genesis",
+		MinerPort:               "3000",
+		MinerSelectedHeight:     1,
+		ValidatorAddress:        "Genesis",
+		ValidatorPort:           "3000",
+		ValidatorSelectedHeight: 1,
+	}
 	block := &Block{
 		Hash:     "",
 		PrevHash: "",
@@ -56,6 +75,7 @@ func createGenesisBlock() *Block {
 	}
 	block.Transaction = Mempool().GenesisTxToConfirm()
 	block.Timestamp = 1231006505 // bitcoin genesis block's timestamp
+	block.RoleInfo = roleInfo
 	block.Hash = utils.Hash(b)
 	persistBlock(block)
 	return block

@@ -33,7 +33,7 @@ var (
 )
 
 const (
-	stakingAddress   = "e9d11618e700bad8d5aa12d44531036d5995b21cec01443f8dc27a92f3b22ab3b5879eb20980be45ec6fcec5e153842f42d5cf7b5632d12ccdc4160bf19bd270"
+	stakingAddress   = "6447b37f5e4bc2c10579778c1f14b00a44a52bce5025efc0ba0debd46c63f41b302e531dbbafd00b0fda8b753714e9a043d922d28625eda05beffc6da477025c"
 	stakingAmount    = 100
 	stakingNodePort  = "3000"
 	unstakingMessage = "unstaked"
