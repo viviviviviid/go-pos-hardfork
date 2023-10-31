@@ -42,9 +42,8 @@ func persistBlockchain(b *blockchain) {
 	dbStorage.SaveChain(utils.ToBytes(b))
 }
 
-func (b *blockchain) AddBlock(port string) *Block {
-
-	block := createBlock(b.NewestHash, b.Height+1, port)
+func (b *blockchain) AddBlock(port string, roleInfo *RoleInfo) *Block {
+	block := createBlock(b.NewestHash, b.Height+1, port, roleInfo)
 	b.NewestHash = block.Hash
 	b.Height = block.Height
 	persistBlockchain(b)

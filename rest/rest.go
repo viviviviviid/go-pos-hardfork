@@ -127,7 +127,7 @@ func blocks(rw http.ResponseWriter, r *http.Request) {
 		utils.HandleErr(json.NewEncoder(rw).Encode(blockchain.Blocks(blockchain.Blockchain())))
 		// Encode가 Marshall의 일을 해주고, 결과를 ResponseWrite에 작성
 	case "POST":
-		newBlock := blockchain.Blockchain().AddBlock(port[1:])
+		newBlock := blockchain.Blockchain().AddBlock(port[1:], nil)
 		p2p.BroadcastNewBlock(newBlock)
 		rw.WriteHeader(http.StatusCreated) // StatusCreated : 201 (status code)
 	}
@@ -264,7 +264,7 @@ func pos(rw http.ResponseWriter, r *http.Request) {
 		utils.HandleErr(json.NewEncoder(rw).Encode("Not Miner"))
 		return
 	}
-	newBlock := blockchain.Blockchain().AddBlock(port[1:])
+	newBlock := blockchain.Blockchain().AddBlock(port[1:], roleInfo)
 	p2p.BroadcastNewBlock(newBlock)
 	rw.WriteHeader(http.StatusCreated) // StatusCreated : 201 (status code)
 	utils.HandleErr(json.NewEncoder(rw).Encode(roleInfo))

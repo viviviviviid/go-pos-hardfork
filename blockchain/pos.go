@@ -1,10 +1,7 @@
 package blockchain
 
 import (
-	"fmt"
 	"math/rand"
-
-	"github.com/viviviviviid/go-coin/utils"
 )
 
 var (
@@ -22,7 +19,7 @@ var (
 // 	selected := stakingList[randNum]
 // 	r.ValidatorAddress = selected.Address
 // 	r.ValidatorPort = selected.Port
-// 	r.ValidatorSelectedHeight = b.Height
+// 	r.ValidatorSelectedHeight = b.Height + 1 // b.Height는 현재 높이이고, 이제 추가할 블록의 높이는 +1로 해야함
 // }
 
 func (r *RoleInfo) selectMiner(b *blockchain, stakingList []*StakingInfo) {
@@ -30,16 +27,12 @@ func (r *RoleInfo) selectMiner(b *blockchain, stakingList []*StakingInfo) {
 	selected := stakingList[randNum]
 	r.MinerAddress = selected.Address
 	r.MinerPort = selected.Port
-	r.MinerSelectedHeight = b.Height
+	r.MinerSelectedHeight = b.Height + 1 // b.Height는 현재 높이이고, 이제 추가할 블록의 높이는 +1로 해야함
 }
 
 func (b *blockchain) Selector() *RoleInfo {
 	_, stakingWalletTx, _ := UTxOutsByStakingAddress(stakingAddress, b)
 	stakingInfoList := GetStakingList(stakingWalletTx, b)
-
-	fmt.Println("1: ", stakingInfoList)
-	fmt.Println("2: ", utils.ToString(stakingInfoList))
-	fmt.Println("3: ", len(stakingInfoList))
 
 	if len(stakingInfoList) == 0 {
 		return nil

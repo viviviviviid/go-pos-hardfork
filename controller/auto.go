@@ -1,8 +1,48 @@
 package controller
 
-func auto() {
-	// 	최초
+import (
+	"fmt"
+	"strconv"
+	"time"
 
+	"github.com/viviviviviid/go-coin/blockchain"
+	"github.com/viviviviviid/go-coin/p2p"
+	"github.com/viviviviviid/go-coin/utils"
+)
+
+func Auto(aPort int) {
+	port := strconv.Itoa(aPort)
+	if port == "3000" {
+		time.Sleep(3 * time.Second)
+		for len(p2p.AllPeers(&p2p.Peers)) != 10 {
+			for peerPort := 4009; peerPort >= 4000; peerPort-- {
+				p2p.AddPeer("127.0.0.1", strconv.Itoa(peerPort), port, true)
+			}
+		}
+	}
+
+	for {
+		fmt.Println("Start!")
+		roleInfo := blockchain.Blockchain().Selector()
+		if port != roleInfo.MinerPort { // 현재 노드의 포트가 r의 miner 포트와 동일할떄 정상적으로 진행.
+			fmt.Println("Re Select")
+			time.Sleep(3 * time.Second)
+			continue
+		}
+		newBlock := blockchain.Blockchain().AddBlock(port, roleInfo)
+		p2p.BroadcastNewBlock(newBlock)
+		hash := blockchain.Blockchain().NewestHash
+		block, _ := blockchain.FindBlock(hash)
+		fmt.Println("Newest Block: ", utils.ToString(block))
+		time.Sleep(1 * time.Second)
+		fmt.Println("Next Selector!")
+		for i := 5; i > 0; i-- {
+			fmt.Printf("%d seconds remaining...\n", i)
+			time.Sleep(1 * time.Second)
+		}
+	}
+
+	// 	최초
 	// 	체인: 역할 선택
 
 	// r := blockchain.Blockchain().Selector()

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/viviviviviid/go-coin/controller"
 	"github.com/viviviviviid/go-coin/rest"
 )
 
@@ -28,6 +29,8 @@ func Start() {
 	switch *mode {
 	case "rest":
 		rest.Start(*port)
+	case "auto":
+		controller.Auto(*port)
 
 	// case "html":vscode-file://vscode-app/Applications/Visual%20Studio%20Code.app/Contents/Resources/app/out/vs/code/electron-sandbox/workbench/workbench.html
 	// 	explorer.Start(*port)

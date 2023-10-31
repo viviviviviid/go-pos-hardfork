@@ -45,7 +45,7 @@ func FindBlock(hash string) (*Block, error) {
 	return block, nil
 }
 
-func createBlock(prevHash string, height int, port string) *Block {
+func createBlock(prevHash string, height int, port string, roleInfo *RoleInfo) *Block {
 	block := &Block{
 		Hash:     "",
 		PrevHash: prevHash,
@@ -53,6 +53,7 @@ func createBlock(prevHash string, height int, port string) *Block {
 	}
 	block.Transaction = Mempool().TxToConfirm(port)
 	block.Timestamp = int(time.Now().Unix())
+	block.RoleInfo = roleInfo
 	block.Hash = utils.Hash(b)
 	persistBlock(block)
 	return block
