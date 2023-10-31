@@ -18,6 +18,7 @@ const (
 	MessageNewBlockNotify
 	MessageNewTxNotify
 	MessageNewPeerNotify
+	MessageNewMinerNotify
 )
 
 type Message struct { // 다른 언어와 소통하기에도 적합한 메세지 형식 정의
@@ -65,6 +66,11 @@ func notifyNewTx(tx *blockchain.Tx, p *peer) {
 
 func notifyNewPeer(address string, p *peer) {
 	m := makeMessage(MessageNewPeerNotify, address)
+	p.inbox <- m
+}
+
+func notifyNewMiner(address string, p *peer) {
+	m := makeMessage(MessageNewMinerNotify, address)
 	p.inbox <- m
 }
 
