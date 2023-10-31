@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"math/rand"
 
-	"github.com/viviviviviid/go-coin/utils"
 	"github.com/viviviviviid/go-coin/wallet"
 )
 
@@ -44,7 +43,6 @@ func (b *blockchain) Selector() *RoleInfo {
 		r.selectValidator(b, stakingInfoList)
 	}
 
-	fmt.Println("println in Selector function: ", utils.ToString(r))
 	return r
 }
 

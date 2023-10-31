@@ -59,7 +59,6 @@ func createBlock(prevHash string, height int, port string) *Block {
 }
 
 func createGenesisBlock() *Block {
-	// defer b.Selector()
 	roleInfo := &RoleInfo{
 		MinerAddress:            "Genesis",
 		MinerPort:               "3000",

@@ -76,8 +76,6 @@ func handleMsg(m *Message, p *peer) { // 들어오는 메세지의 유형에 따
 		utils.HandleErr(json.Unmarshal(m.Payload, &payload))
 		b, err := blockchain.FindBlock(blockchain.Blockchain().NewestHash)
 		utils.HandleErr(err)
-		fmt.Println("payload.Height:", payload.Height)
-		fmt.Println("b.Height: ", b.Height)
 		if payload.Height > b.Height { // 우리 노드의 최신블록보다 블록높이가 높은지 확인 -> 뒤처지는지 앞서는지
 			fmt.Printf("Request all block from %s\n", p.key)
 			// 4000번에게 블록전체를 요청
