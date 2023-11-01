@@ -33,7 +33,7 @@ var (
 )
 
 const (
-	stakingAddress   = "0ba0b66c37ffe7037b114ca5142bb0c6796ad910ead1022d565bee5f86dcc9cc6bc8209cd879cc855ccfbd7ed6113b29ac0ca9ecb4c1a76dafe6a39cbf246dbe"
+	stakingAddress   = "0ed84571488f4474f83291fcb29f73348983df8ac535873d44acb7cdb38035a547720ab7f64d2fce2811fd7b3b8db7b9100e8c054f88970aa415ddced6a12beb"
 	stakingAmount    = 100
 	stakingNodePort  = "3000"
 	unstakingMessage = "unstaked"
@@ -258,16 +258,10 @@ func checkStaking(rw http.ResponseWriter, r *http.Request) {
 	utils.HandleErr(json.NewEncoder(rw).Encode(stakingInfoList))
 }
 
-func pos(rw http.ResponseWriter, r *http.Request) {
+func miner(rw http.ResponseWriter, r *http.Request) {
 	roleInfo := blockchain.Blockchain().Selector()
-	if port[1:] != roleInfo.MinerPort { // 현재 노드의 포트가 r의 miner 포트와 동일할떄 정상적으로 진행.
-		utils.HandleErr(json.NewEncoder(rw).Encode("Not Miner"))
-		return
-	}
-	newBlock := blockchain.Blockchain().AddBlock(port[1:], roleInfo)
-	p2p.BroadcastNewBlock(newBlock)
+	p2p.PointingMiner(roleInfo)
 	rw.WriteHeader(http.StatusCreated) // StatusCreated : 201 (status code)
-	utils.HandleErr(json.NewEncoder(rw).Encode(roleInfo))
 }
 
 func Start(aPort int) {
@@ -287,7 +281,7 @@ func Start(aPort int) {
 	router.HandleFunc("/stake", stake).Methods("POST")
 	router.HandleFunc("/unstake", unstake).Methods("POST")
 	router.HandleFunc("/staking", checkStaking).Methods("GET")
-	router.HandleFunc("/pos", pos).Methods("POST")
+	router.HandleFunc("/miner", miner).Methods("POST")
 	// Gorilla Mux 공식문서에 나와있는대로
 	fmt.Printf("Listening on http://localhost%s\n", port)
 	log.Fatal(http.ListenAndServe(port, router))

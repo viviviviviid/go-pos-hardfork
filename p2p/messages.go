@@ -69,8 +69,8 @@ func notifyNewPeer(address string, p *peer) {
 	p.inbox <- m
 }
 
-func notifyNewMiner(address string, p *peer) {
-	m := makeMessage(MessageNewMinerNotify, address)
+func notifyNewMiner(roleInfo *blockchain.RoleInfo, p *peer) {
+	m := makeMessage(MessageNewMinerNotify, roleInfo)
 	p.inbox <- m
 }
 
@@ -112,5 +112,14 @@ func handleMsg(m *Message, p *peer) { // 들어오는 메세지의 유형에 따
 		utils.HandleErr(json.Unmarshal(m.Payload, &payload))
 		parts := strings.Split(payload, ":")
 		AddPeer(parts[0], parts[1], parts[2], false)
+	case MessageNewMinerNotify:
+		var payload *blockchain.RoleInfo
+		utils.HandleErr(json.Unmarshal(m.Payload, &payload))
+		fmt.Printf("At current height, this %s node has been pointed as a Miner", payload.MinerPort)
+		fmt.Println("Starting to create block as a Miner")
+		newBlock := blockchain.Blockchain().AddBlock(payload.MinerPort, payload)
+		fmt.Println("Just created new block :", utils.ToString(newBlock))
+		BroadcastNewBlock(newBlock)
+		fmt.Println("Added and broadcasted the block done")
 	}
 }

@@ -1,12 +1,15 @@
 package blockchain
 
 import (
+	"fmt"
 	"math/rand"
+
+	"github.com/viviviviviid/go-coin/utils"
 )
 
 var (
 	r              = &RoleInfo{}
-	stakingAddress = "0ba0b66c37ffe7037b114ca5142bb0c6796ad910ead1022d565bee5f86dcc9cc6bc8209cd879cc855ccfbd7ed6113b29ac0ca9ecb4c1a76dafe6a39cbf246dbe"
+	stakingAddress = "0ed84571488f4474f83291fcb29f73348983df8ac535873d44acb7cdb38035a547720ab7f64d2fce2811fd7b3b8db7b9100e8c054f88970aa415ddced6a12beb"
 )
 
 // const (
@@ -34,7 +37,10 @@ func (b *blockchain) Selector() *RoleInfo {
 	_, stakingWalletTx, _ := UTxOutsByStakingAddress(stakingAddress, b)
 	stakingInfoList := GetStakingList(stakingWalletTx, b)
 
+	fmt.Println(utils.ToString(stakingInfoList))
+
 	if len(stakingInfoList) == 0 {
+		fmt.Println("Anyone not staked, now")
 		return nil
 	}
 

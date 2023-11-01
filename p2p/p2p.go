@@ -40,6 +40,14 @@ func AddPeer(address, port, openPort string, broadcast bool) { // 서로간에 c
 	sendNewestBlock(p)
 }
 
+func PointingMiner(roleInfo *blockchain.RoleInfo) {
+	for _, p := range Peers.v {
+		if roleInfo.MinerPort == p.port {
+			notifyNewMiner(roleInfo, p)
+		}
+	}
+}
+
 func BroadcastNewBlock(b *blockchain.Block) {
 	Peers.m.Lock()
 	defer Peers.m.Unlock()
