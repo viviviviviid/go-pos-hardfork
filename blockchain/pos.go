@@ -51,11 +51,3 @@ func (b *blockchain) Selector() *RoleInfo {
 
 	return r
 }
-
-func Miner() {
-
-}
-
-func Validator() {
-
-}
