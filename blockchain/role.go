@@ -39,8 +39,6 @@ func (b *blockchain) Selector() (*RoleInfo, error) {
 	_, stakingWalletTx, _ := UTxOutsByStakingAddress(stakingAddress, b)
 	stakingInfoList := GetStakingList(stakingWalletTx, b)
 
-	fmt.Println(utils.ToString(stakingInfoList))
-
 	if len(stakingInfoList) <= 3 {
 		return nil, ErrLeastStaker
 	}
@@ -48,7 +46,14 @@ func (b *blockchain) Selector() (*RoleInfo, error) {
 	r.selectMiner(b, stakingInfoList)
 	if b.Height%epoch == 0 {
 		r.selectValidator(b, stakingInfoList)
+	} else {
+		block, _ := FindBlock(b.NewestHash)
+		r.ValidatorSelectedHeight = block.RoleInfo.ValidatorSelectedHeight
+		r.ValidatorAddress = block.RoleInfo.ValidatorAddress
+		r.ValidatorPort = block.RoleInfo.ValidatorPort
 	}
+
+	fmt.Println(utils.ToString(r))
 
 	return r, nil
 }
