@@ -34,7 +34,7 @@ sleep 1
 
 for ((i=0; i<10; i++)); do
     port=$((4000 + $i))
-    go run ../main.go -mode=auto -port=$port > logs/log_$port.log 2>&1 &
+    go run ../main.go -mode=rest -port=$port > logs/log_$port.log 2>&1 &
     sleep 1
     if [ "$port" -ne 4000 ]; then
         curl -X POST http://localhost:4000/peer -H "Content-Type: application/json" -d "{\"address\": \"127.0.0.1\", \"port\": \"$port\"}"

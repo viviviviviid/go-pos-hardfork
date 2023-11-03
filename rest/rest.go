@@ -259,7 +259,12 @@ func checkStaking(rw http.ResponseWriter, r *http.Request) {
 }
 
 func miner(rw http.ResponseWriter, r *http.Request) {
-	roleInfo := blockchain.Blockchain().Selector()
+	roleInfo, err := blockchain.Blockchain().Selector()
+	if err != nil {
+		rw.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(rw).Encode(errorResponse{err.Error()})
+		return
+	}
 	p2p.PointingMiner(roleInfo)
 	rw.WriteHeader(http.StatusCreated) // StatusCreated : 201 (status code)
 }

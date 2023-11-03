@@ -115,7 +115,7 @@ func handleMsg(m *Message, p *peer) { // 들어오는 메세지의 유형에 따
 	case MessageNewMinerNotify:
 		var payload *blockchain.RoleInfo
 		utils.HandleErr(json.Unmarshal(m.Payload, &payload))
-		fmt.Printf("At current height, this %s node has been pointed as a Miner", payload.MinerPort)
+		fmt.Printf("At current height, this %s node has been pointed as a Miner\n", payload.MinerPort)
 		fmt.Println("Starting to create block as a Miner")
 		newBlock := blockchain.Blockchain().AddBlock(payload.MinerPort, payload)
 		fmt.Println("Just created new block :", utils.ToString(newBlock))
