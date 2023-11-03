@@ -18,7 +18,7 @@ const (
 	MessageNewBlockNotify
 	MessageNewTxNotify
 	MessageNewPeerNotify
-	MessageNewMinerNotify
+	MessageNewProposalNotify
 )
 
 type Message struct { // 다른 언어와 소통하기에도 적합한 메세지 형식 정의
@@ -69,8 +69,8 @@ func notifyNewPeer(address string, p *peer) {
 	p.inbox <- m
 }
 
-func notifyNewMiner(roleInfo *blockchain.RoleInfo, p *peer) {
-	m := makeMessage(MessageNewMinerNotify, roleInfo)
+func notifyNewProposal(roleInfo *blockchain.RoleInfo, p *peer) {
+	m := makeMessage(MessageNewProposalNotify, roleInfo)
 	p.inbox <- m
 }
 
@@ -112,12 +112,12 @@ func handleMsg(m *Message, p *peer) { // 들어오는 메세지의 유형에 따
 		utils.HandleErr(json.Unmarshal(m.Payload, &payload))
 		parts := strings.Split(payload, ":")
 		AddPeer(parts[0], parts[1], parts[2], false)
-	case MessageNewMinerNotify:
+	case MessageNewProposalNotify:
 		var payload *blockchain.RoleInfo
 		utils.HandleErr(json.Unmarshal(m.Payload, &payload))
-		fmt.Printf("At current height, this %s node has been pointed as a Miner\n", payload.MinerPort)
-		fmt.Println("Starting to create block as a Miner")
-		newBlock := blockchain.Blockchain().AddBlock(payload.MinerPort, payload)
+		fmt.Printf("At current height, this %s node has been pointed as a Proposal\n", payload.ProposalPort)
+		fmt.Println("Starting to create block as a Proposal")
+		newBlock := blockchain.Blockchain().AddBlock(payload.ProposalPort, payload)
 		fmt.Println("Just created new block :", utils.ToString(newBlock))
 		BroadcastNewBlock(newBlock)
 		fmt.Println("Added and broadcasted the block done")

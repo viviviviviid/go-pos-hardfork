@@ -8,9 +8,9 @@ import (
 )
 
 type RoleInfo struct {
-	MinerAddress            string
-	MinerPort               string
-	MinerSelectedHeight     int
+	ProposalAddress         string
+	ProposalPort            string
+	ProposalSelectedHeight  int
 	ValidatorAddress        string
 	ValidatorPort           string
 	ValidatorSelectedHeight int
@@ -61,9 +61,9 @@ func createBlock(prevHash string, height int, port string, roleInfo *RoleInfo) *
 
 func createGenesisBlock() *Block {
 	roleInfo := &RoleInfo{
-		MinerAddress:            "Genesis",
-		MinerPort:               "3000",
-		MinerSelectedHeight:     1,
+		ProposalAddress:         "Genesis",
+		ProposalPort:            "3000",
+		ProposalSelectedHeight:  1,
 		ValidatorAddress:        "Genesis",
 		ValidatorPort:           "3000",
 		ValidatorSelectedHeight: 1,

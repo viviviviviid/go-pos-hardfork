@@ -40,10 +40,10 @@ func AddPeer(address, port, openPort string, broadcast bool) { // 서로간에 c
 	sendNewestBlock(p)
 }
 
-func PointingMiner(roleInfo *blockchain.RoleInfo) {
+func PointingProposal(roleInfo *blockchain.RoleInfo) {
 	for _, p := range Peers.v {
-		if roleInfo.MinerPort == p.port {
-			notifyNewMiner(roleInfo, p)
+		if roleInfo.ProposalPort == p.port {
+			notifyNewProposal(roleInfo, p)
 		}
 	}
 }

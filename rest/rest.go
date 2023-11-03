@@ -258,14 +258,14 @@ func checkStaking(rw http.ResponseWriter, r *http.Request) {
 	utils.HandleErr(json.NewEncoder(rw).Encode(stakingInfoList))
 }
 
-func miner(rw http.ResponseWriter, r *http.Request) {
+func proposal(rw http.ResponseWriter, r *http.Request) {
 	roleInfo, err := blockchain.Blockchain().Selector()
 	if err != nil {
 		rw.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(rw).Encode(errorResponse{err.Error()})
 		return
 	}
-	p2p.PointingMiner(roleInfo)
+	p2p.PointingProposal(roleInfo)
 	rw.WriteHeader(http.StatusCreated) // StatusCreated : 201 (status code)
 }
 
@@ -286,7 +286,7 @@ func Start(aPort int) {
 	router.HandleFunc("/stake", stake).Methods("POST")
 	router.HandleFunc("/unstake", unstake).Methods("POST")
 	router.HandleFunc("/staking", checkStaking).Methods("GET")
-	router.HandleFunc("/miner", miner).Methods("POST")
+	router.HandleFunc("/proposal", proposal).Methods("POST")
 	// Gorilla Mux 공식문서에 나와있는대로
 	fmt.Printf("Listening on http://localhost%s\n", port)
 	log.Fatal(http.ListenAndServe(port, router))

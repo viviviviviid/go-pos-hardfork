@@ -27,12 +27,12 @@ func (r *RoleInfo) selectValidator(b *blockchain, stakingList []*StakingInfo) {
 	r.ValidatorSelectedHeight = b.Height + 1 // b.Height는 현재 높이이고, 이제 추가할 블록의 높이는 +1로 해야함
 }
 
-func (r *RoleInfo) selectMiner(b *blockchain, stakingList []*StakingInfo) {
+func (r *RoleInfo) selectProposal(b *blockchain, stakingList []*StakingInfo) {
 	randNum := rand.Intn(len(stakingList))
 	selected := stakingList[randNum]
-	r.MinerAddress = selected.Address
-	r.MinerPort = selected.Port
-	r.MinerSelectedHeight = b.Height + 1 // b.Height는 현재 높이이고, 이제 추가할 블록의 높이는 +1로 해야함
+	r.ProposalAddress = selected.Address
+	r.ProposalPort = selected.Port
+	r.ProposalSelectedHeight = b.Height + 1 // b.Height는 현재 높이이고, 이제 추가할 블록의 높이는 +1로 해야함
 }
 
 func (b *blockchain) Selector() (*RoleInfo, error) {
@@ -43,7 +43,8 @@ func (b *blockchain) Selector() (*RoleInfo, error) {
 		return nil, ErrLeastStaker
 	}
 
-	r.selectMiner(b, stakingInfoList)
+	r.selectProposal(b, stakingInfoList)
+
 	if b.Height%epoch == 0 {
 		r.selectValidator(b, stakingInfoList)
 	} else {

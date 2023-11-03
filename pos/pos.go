@@ -14,6 +14,7 @@ const (
 	nodeSettingTime = 20
 )
 
+// 3000 port has a staking address of this PoS chain. So this port is selecting Proposal and Validator
 func PoS(aPort int) {
 	go rest.Start(aPort)
 	time.Sleep(nodeSettingTime * time.Second)
@@ -24,7 +25,7 @@ func PoS(aPort int) {
 			utils.HandleErr(err)
 			return
 		}
-		p2p.PointingMiner(roleInfo)
+		p2p.PointingProposal(roleInfo)
 		time.Sleep(5 * time.Second)
 	}
 }

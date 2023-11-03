@@ -9,7 +9,7 @@ import (
 	"github.com/viviviviviid/go-coin/wallet"
 )
 
-// minerReward는 채굴자에게 주어지는 보상입니다.
+// minerReward는 채굴자 즉 제안자에게 주어지는 보상입니다.
 const (
 	minerReward          int    = 50
 	genesisBlockRewarder string = "6308e20ddaeae91a48a7e07791d5dabb814bae4a1e44595b0253c6051dc1c260cc6d0747370172c0db48aec400f0dbf7badbeada4f585ecd7ef5115e1dddd433"
