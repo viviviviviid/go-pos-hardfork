@@ -11,8 +11,8 @@ type RoleInfo struct {
 	ProposalAddress         string
 	ProposalPort            string
 	ProposalSelectedHeight  int
-	ValidatorAddress        string
-	ValidatorPort           string
+	ValidatorAddress        []string
+	ValidatorPort           []string
 	ValidatorSelectedHeight int
 }
 
@@ -53,6 +53,16 @@ func createBlock(prevHash string, height int, port string, roleInfo *RoleInfo) *
 	}
 	block.Transaction = Mempool().TxToConfirm(port)
 	block.Timestamp = int(time.Now().Unix())
+	if roleInfo == nil {
+		roleInfo = &RoleInfo{
+			ProposalAddress:         "Staking Address",
+			ProposalPort:            "Staking Port",
+			ProposalSelectedHeight:  b.Height,
+			ValidatorAddress:        []string{"Staking Address", "Staking Address", "Staking Address"},
+			ValidatorPort:           []string{"Staking Port", "Staking Port", "Staking Port"},
+			ValidatorSelectedHeight: b.Height,
+		}
+	}
 	block.RoleInfo = roleInfo
 	block.Hash = utils.Hash(b)
 	persistBlock(block)
@@ -64,8 +74,8 @@ func createGenesisBlock() *Block {
 		ProposalAddress:         "Genesis",
 		ProposalPort:            "3000",
 		ProposalSelectedHeight:  1,
-		ValidatorAddress:        "Genesis",
-		ValidatorPort:           "3000",
+		ValidatorAddress:        []string{"Genesis", "Genesis", "Genesis"},
+		ValidatorPort:           []string{"3000", "3000", "3000"},
 		ValidatorSelectedHeight: 1,
 	}
 	block := &Block{
