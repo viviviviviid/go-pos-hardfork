@@ -51,7 +51,7 @@ func createBlock(prevHash string, height int, port string, roleInfo *RoleInfo) *
 		PrevHash: prevHash,
 		Height:   height,
 	}
-	block.Transaction = Mempool().TxToConfirm(port)
+	block.Transaction = Mempool().TxToConfirm(port, roleInfo)
 	block.Timestamp = int(time.Now().Unix())
 	if roleInfo == nil {
 		roleInfo = &RoleInfo{

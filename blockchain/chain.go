@@ -141,7 +141,6 @@ func Blockchain() *blockchain {
 
 		if checkpoint == nil {
 			b.AddGenesisBlock()
-			// @@@@@@@@@@@ AddGenesisBlock 여기에 체인이 역할을 선택해서 해당 노드들로 전파 @@@@@@@@
 		} else {
 			b.restore(checkpoint)
 		}

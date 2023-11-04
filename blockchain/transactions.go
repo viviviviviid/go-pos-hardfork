@@ -11,7 +11,8 @@ import (
 
 // minerReward는 채굴자 즉 제안자에게 주어지는 보상입니다.
 const (
-	minerReward          int    = 50
+	proposalReward       int    = 50
+	validatorReward      int    = 10
 	genesisBlockRewarder string = "6308e20ddaeae91a48a7e07791d5dabb814bae4a1e44595b0253c6051dc1c260cc6d0747370172c0db48aec400f0dbf7badbeada4f585ecd7ef5115e1dddd433"
 	MonthToSec           int    = 2592000
 	WeekToSec            int    = 604800
@@ -120,12 +121,15 @@ Outer:
 
 // 블록 채굴 시
 // 채굴자를 주소로 삼는 코인베이스 거래내역을 생성해서 Tx 포인터를 반환
-func makeCoinbaseTx(address string) *Tx {
+func makeCoinbaseTx(roleInfo *RoleInfo) *Tx {
 	txIns := []*TxIn{
 		{"", -1, "COINBASE"}, // 소유주는 채굴자
 	}
 	txOuts := []*TxOut{
-		{address, minerReward},
+		{roleInfo.ProposalAddress, proposalReward},
+		{roleInfo.ValidatorAddress[0], validatorReward},
+		{roleInfo.ValidatorAddress[1], validatorReward},
+		{roleInfo.ValidatorAddress[2], validatorReward},
 	}
 	tx := Tx{
 		ID:        "",
@@ -143,7 +147,7 @@ func makeGenesisTx() *Tx {
 		{"", -1, "COINBASE"}, // 소유주는 채굴자
 	}
 	txOuts := []*TxOut{
-		{genesisBlockRewarder, minerReward},
+		{genesisBlockRewarder, proposalReward},
 	}
 	tx := Tx{
 		ID:        "",
@@ -255,8 +259,8 @@ func (m *mempool) AddTxFromStakingAddress(from, to, inputData, mainPort string, 
 }
 
 // TxToConfirm 메서드는 확인할 트랜잭션들을 반환
-func (m *mempool) TxToConfirm(port string) []*Tx {
-	coinbase := makeCoinbaseTx(wallet.Wallet(port).Address)
+func (m *mempool) TxToConfirm(port string, roleInfo *RoleInfo) []*Tx {
+	coinbase := makeCoinbaseTx(roleInfo)
 	var txs []*Tx
 	for _, tx := range m.Txs {
 		txs = append(txs, tx)
