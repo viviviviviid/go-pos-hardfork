@@ -14,7 +14,7 @@ var (
 )
 
 const (
-	epoch         = 3 // 실제는 32
+	Epoch         = 3 // 실제는 32
 	genesisHeight = 1
 )
 
@@ -71,7 +71,7 @@ func (b *blockchain) Selector() (*RoleInfo, error) {
 		return nil, ErrLeastStaker
 	}
 
-	if b.Height%epoch == 0 {
+	if b.Height%Epoch == 0 {
 		r.selectValidator(b, stakingInfoList)
 		r.selectProposal(b, stakingInfoList)
 	} else {

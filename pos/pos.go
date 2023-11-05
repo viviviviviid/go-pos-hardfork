@@ -20,12 +20,17 @@ func PoS(aPort int) {
 	time.Sleep(nodeSettingTime * time.Second)
 
 	for {
+
 		roleInfo, err := blockchain.Blockchain().Selector()
 		if err != nil {
 			utils.HandleErr(err)
 			return
 		}
 		p2p.PointingProposal(roleInfo)
+		if blockchain.Blockchain().Height%blockchain.Epoch == 0 {
+			p2p.PointingValidator(roleInfo)
+		}
+
 		time.Sleep(5 * time.Second)
 	}
 }

@@ -48,6 +48,25 @@ func PointingProposal(roleInfo *blockchain.RoleInfo) {
 	}
 }
 
+func PointingValidator(roleInfo *blockchain.RoleInfo) {
+	for _, p := range Peers.v {
+		for _, port := range roleInfo.ValidatorPort {
+			if port == p.port {
+				container := []interface{}{roleInfo, p.port}
+				notifyNewValidator(container, p)
+			}
+		}
+	}
+}
+
+func SendValidatedResult(validatedInfo *blockchain.ValidatedInfo) {
+	for _, p := range Peers.v {
+		if p.port == "3000" { // staking port
+			notifyValidatedResult(validatedInfo, p)
+		}
+	}
+}
+
 func BroadcastNewBlock(b *blockchain.Block) {
 	Peers.m.Lock()
 	defer Peers.m.Unlock()

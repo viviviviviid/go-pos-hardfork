@@ -25,6 +25,11 @@ type Block struct {
 	RoleInfo    *RoleInfo
 }
 
+type ValidatedInfo struct {
+	Port   string
+	Result bool
+}
+
 func persistBlock(b *Block) {
 	dbStorage.SaveBlock(b.Hash, utils.ToBytes(b)) // interface로 인자를 받은 ToBytes는 뭐든 받을 수 있다 = interface
 }
@@ -89,4 +94,15 @@ func createGenesisBlock() *Block {
 	block.Hash = utils.Hash(b)
 	persistBlock(block)
 	return block
+}
+
+func ValidateBlock(proposalBlock *Block, createdBlock *Block, port string) *ValidatedInfo {
+	//
+	//	검증프로세스
+	//
+	v := &ValidatedInfo{
+		Port:   port,
+		Result: true, // 검증 프로세스 완성전까지는 true로 제공
+	}
+	return v
 }
