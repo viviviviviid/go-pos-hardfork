@@ -11,6 +11,12 @@ import (
 
 var upgrader = websocket.Upgrader{}
 
+type validateRequest struct {
+	RoleInfo *blockchain.RoleInfo
+	Block    *blockchain.Block
+	Port     string
+}
+
 // Upgrade: 프로토콜간의 전환 // 즉 우리는 HTTP에서 WebSocket 통신으로 전환할것임.
 func Upgrade(rw http.ResponseWriter, r *http.Request) {
 	// Port :3000이 :4000에서 온 request를 upgrade 함
@@ -40,20 +46,35 @@ func AddPeer(address, port, openPort string, broadcast bool) { // 서로간에 c
 	sendNewestBlock(p)
 }
 
-func PointingProposal(roleInfo *blockchain.RoleInfo) {
+func PointingProposal(r *blockchain.RoleInfo) {
 	for _, p := range Peers.v {
-		if roleInfo.ProposalPort == p.port {
-			notifyNewProposal(roleInfo, p)
+		if r.ProposalPort == p.port {
+			notifyNewProposal(r, p)
 		}
 	}
 }
 
-func PointingValidator(roleInfo *blockchain.RoleInfo) {
+func PointingValidator(r *blockchain.RoleInfo) {
 	for _, p := range Peers.v {
-		for _, port := range roleInfo.ValidatorPort {
+		for _, port := range r.ValidatorPort {
 			if port == p.port {
-				container := []interface{}{roleInfo, p.port}
-				notifyNewValidator(container, p)
+				notifyNewValidator(p)
+			}
+		}
+	}
+}
+
+func SendProposalBlock(r *blockchain.RoleInfo, b *blockchain.Block) {
+	for _, p := range Peers.v {
+		for _, port := range r.ValidatorPort {
+			if port == p.port {
+				requestFormat := &validateRequest{
+					RoleInfo: r,
+					Block:    b,
+					Port:     p.port,
+				}
+				fmt.Println(utils.ToString(requestFormat))
+				requestValidateBlock(requestFormat, p)
 			}
 		}
 	}
@@ -63,6 +84,14 @@ func SendValidatedResult(validatedInfo *blockchain.ValidatedInfo) {
 	for _, p := range Peers.v {
 		if p.port == "3000" { // staking port
 			notifyValidatedResult(validatedInfo, p)
+		}
+	}
+}
+
+func SendProposalResult(proposalPort string, result bool) {
+	for _, p := range Peers.v {
+		if p.port == proposalPort { // staking port
+			notifyProposalResult(result, p)
 		}
 	}
 }

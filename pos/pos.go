@@ -29,10 +29,8 @@ func PoS(aPort int) {
 		p2p.PointingProposal(roleInfo)
 		p2p.PointingValidator(roleInfo)
 
-		// time.Sleep(10 * time.Second)
-
 		for blockchain.Blockchain().Height == height {
-
+			// 블록추가될때까지 대기
 		}
 	}
 }

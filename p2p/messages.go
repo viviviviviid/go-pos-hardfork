@@ -20,10 +20,13 @@ const (
 	MessageNewPeerNotify
 	MessageNewProposalNotify
 	MessageNewValidatorNotify
+	MessageValidateRequest
 	MessageValidateResponse
+	MessageProposalResponse
 )
 
 var ValidatedResults []*blockchain.ValidatedInfo
+var ProposalResult bool
 
 type Message struct { // 다른 언어와 소통하기에도 적합한 메세지 형식 정의
 	Kind    MessageKind
@@ -53,6 +56,11 @@ func requestAllBlocks(p *peer) {
 	p.inbox <- m
 }
 
+func requestValidateBlock(v *validateRequest, p *peer) {
+	m := makeMessage(MessageValidateRequest, v)
+	p.inbox <- m
+}
+
 func sendAllBlocks(p *peer) {
 	m := makeMessage(MessageAllBlocksResponse, blockchain.Blocks(blockchain.Blockchain()))
 	p.inbox <- m
@@ -78,13 +86,18 @@ func notifyNewProposal(roleInfo *blockchain.RoleInfo, p *peer) {
 	p.inbox <- m
 }
 
-func notifyNewValidator(container []interface{}, p *peer) {
-	m := makeMessage(MessageNewValidatorNotify, container)
+func notifyNewValidator(p *peer) {
+	m := makeMessage(MessageNewValidatorNotify, nil)
 	p.inbox <- m
 }
 
 func notifyValidatedResult(validatedInfo *blockchain.ValidatedInfo, p *peer) {
 	m := makeMessage(MessageValidateResponse, validatedInfo)
+	p.inbox <- m
+}
+
+func notifyProposalResult(result bool, p *peer) {
+	m := makeMessage(MessageProposalResponse, result)
 	p.inbox <- m
 }
 
@@ -129,22 +142,28 @@ func handleMsg(m *Message, p *peer) { // 들어오는 메세지의 유형에 따
 	case MessageNewProposalNotify:
 		var payload *blockchain.RoleInfo
 		utils.HandleErr(json.Unmarshal(m.Payload, &payload))
-		fmt.Printf("At current height, this %s node has been pointed as a Proposal\n", payload.ProposalPort)
-		fmt.Println("Starting to create block as a Proposal")
-		newBlock := blockchain.Blockchain().AddBlock(payload.ProposalPort, payload)
+		fmt.Printf("At %d height, this %s node has been pointed as a Proposal\n", blockchain.Blockchain().Height, payload.ProposalPort)
+		newBlock := blockchain.CreateBlock(blockchain.Blockchain().NewestHash, blockchain.Blockchain().Height+1, payload.ProposalPort, payload, false)
 		fmt.Println("Just created new block :", utils.ToString(newBlock))
-		BroadcastNewBlock(newBlock)
-		fmt.Println("Added and broadcasted the block done")
+		SendProposalBlock(payload, newBlock)
+		// 3000번으로부터 OK라는 답이오면
+		for ProposalResult {
+			blockchain.PersistBlock(newBlock)
+			blockchain.Blockchain().UpdateBlockchain(newBlock)
+			BroadcastNewBlock(newBlock)
+			ProposalResult = false
+			fmt.Println("Added and broadcasted the block done")
+		}
 	case MessageNewValidatorNotify:
-		var payload []interface{}
+		fmt.Printf("At %d height, this node has been pointed as a Validator for 3 blocks\n", blockchain.Blockchain().Height)
+	case MessageValidateRequest:
+		var payload *validateRequest
 		utils.HandleErr(json.Unmarshal(m.Payload, &payload))
-		// roleInfo := payload[0].(*blockchain.RoleInfo)
-		port := payload[1].(string)
-		fmt.Printf("At current height, this %s node has been pointed as a Validator for 3 blocks\n", port)
-		// 제안자한테 블록이 오기까지 대기
-		// 제안자에게 블록이 오면, 나또한 블록 구성하기
+		// 비교할 블록 구성하기
+		newBlock := blockchain.CreateBlock(blockchain.Blockchain().NewestHash, blockchain.Blockchain().Height+1, payload.RoleInfo.ProposalPort, payload.RoleInfo, false) // 제안자의 정보가 들어가야함.
+		fmt.Println("comparisonBlock: ", utils.ToString(newBlock))
 		// 비교하고, 검증하기
-		result := blockchain.ValidateBlock(nil, nil, port)
+		result := blockchain.ValidateBlock(payload.RoleInfo, payload.Block, newBlock, payload.Port)
 		fmt.Println(utils.ToString(result))
 		// true/false를 3000번에게 보내기
 		SendValidatedResult(result)
@@ -160,6 +179,7 @@ func handleMsg(m *Message, p *peer) { // 들어오는 메세지의 유형에 따
 
 			// 1. 과반수가 찬성일 경우 블록제안자에게 true를 보낸다
 			// 2. true를 보내면서 블록을 하나 추가할 수 있는 권한을 부여한다. → 음 이건 struct type으로 해결해야하나?
+			SendProposalResult(payload.ProposalPort, true)
 			// 3. 과반수가 반대일 경우 블록제안자에게 false를 보낸다
 			// 4. false를 보내면서 Selector로 역할을 새롭게 선정하게 하기위해, pos.go의 for문을 continue 시킨다.
 
@@ -167,5 +187,9 @@ func handleMsg(m *Message, p *peer) { // 들어오는 메세지의 유형에 따
 			ValidatedResults = []*blockchain.ValidatedInfo{}
 			fmt.Println("validatedResult clear!: ", utils.ToString(ValidatedResults))
 		}
+	case MessageProposalResponse:
+		var payload bool
+		utils.HandleErr(json.Unmarshal(m.Payload, &payload))
+		ProposalResult = payload
 	}
 }
