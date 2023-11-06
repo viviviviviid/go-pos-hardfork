@@ -2,25 +2,25 @@ http://localhost:4000/
 ###
 http://localhost:4000/status
 ###
-http://localhost:4001/balance/3e48e79c1a74c9ec3b580910ac89a0ba22b5f1e79c04276a42bd12e1a6ab3706c073667d7b51ff1db2997e94d09abd743c610a035f848cc548fda2302d295f13
+http://localhost:4001/balance/ee2fe4bac2596c66f8ee7df93f47c38864c83fac7a69294ac587ad80589d68ab0a77ea975ae60461cb01cf56b8907515eb27cc8575cc384a23398c6a0226ac0d
 ###
 http://localhost:4001/balance/3e48e79c1a74c9ec3b580910ac89a0ba22b5f1e79c04276a42bd12e1a6ab3706c073667d7b51ff1db2997e94d09abd743c610a035f848cc548fda2302d295f13?total=true
 ###
 http://localhost:4000/blocks
 ###
-http://localhost:4000/wallet
+http://localhost:4006/wallet
 ###
-POST http://localhost:4005/blocks
+POST http://localhost:4006/blocks
 ###
 POST http://localhost:4002/transactions
 
 {
-    "to":"kkk",
-    "amount":10,
+    "to":"ee2fe4bac2596c66f8ee7df93f47c38864c83fac7a69294ac587ad80589d68ab0a77ea975ae60461cb01cf56b8907515eb27cc8575cc384a23398c6a0226ac0d",
+    "amount":100,
     "inputData":"any string"
 }
 ###
-POST http://localhost:4005/stake
+POST http://localhost:4006/stake
 ###
 POST http://localhost:4001/unstake
 ### 
