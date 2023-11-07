@@ -11,6 +11,8 @@ import (
 
 var upgrader = websocket.Upgrader{}
 
+const StakingPort = "3000"
+
 type validateRequest struct {
 	RoleInfo *blockchain.RoleInfo
 	Block    *blockchain.Block
@@ -73,7 +75,6 @@ func SendProposalBlock(r *blockchain.RoleInfo, b *blockchain.Block) {
 					Block:    b,
 					Port:     p.port,
 				}
-				fmt.Println(utils.ToString(requestFormat))
 				requestValidateBlock(requestFormat, p)
 			}
 		}
@@ -88,10 +89,10 @@ func SendValidatedResult(validatedInfo *blockchain.ValidatedInfo) {
 	}
 }
 
-func SendProposalResult(proposalPort string, result bool) {
+func SendProposalResult(proposalResult *blockchain.ValidatedInfo) {
 	for _, p := range Peers.v {
-		if p.port == proposalPort { // staking port
-			notifyProposalResult(result, p)
+		if p.port == proposalResult.ProposalPort { // staking port
+			notifyProposalResult(proposalResult, p)
 		}
 	}
 }

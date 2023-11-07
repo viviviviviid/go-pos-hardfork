@@ -17,6 +17,7 @@ const (
 	MonthToSec           int    = 2592000
 	WeekToSec            int    = 604800
 	DayToSec             int    = 86400
+	SlotSec              int    = 12
 )
 
 // mempool은 대기 중인 트랜잭션들을 저장합니다.

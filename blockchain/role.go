@@ -86,3 +86,17 @@ func (b *blockchain) Selector() (*RoleInfo, error) {
 
 	return r, nil
 }
+
+func CalculateMajority(v []*ValidatedInfo) bool {
+	pass := 0
+	fail := 0
+	for _, r := range v {
+		if r.Result {
+			pass++
+		} else {
+			fail++
+		}
+	}
+	fmt.Printf("PASS: %d \nFAIL: %d\n", pass, fail)
+	return pass > fail
+}

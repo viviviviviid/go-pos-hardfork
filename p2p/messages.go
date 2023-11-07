@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/viviviviviid/go-coin/blockchain"
 	"github.com/viviviviviid/go-coin/utils"
@@ -12,9 +13,9 @@ import (
 type MessageKind int
 
 const (
-	MessageNewestBlock       MessageKind = iota // StatusOK = 200 과 같은 스테이터스 변수와 같은 형식스로 진행
-	MessageAllBlocksRequest                     // iota 밑에 있어서, 변수들의 숫자가 0부터 1씩 증가하는 형태로 가지게 될것이고
-	MessageAllBlocksResponse                    // iota 밑에 있어서, 변수들의 종류도 MessageKind가 될것
+	MessageNewestBlock MessageKind = iota
+	MessageAllBlocksRequest
+	MessageAllBlocksResponse
 	MessageNewBlockNotify
 	MessageNewTxNotify
 	MessageNewPeerNotify
@@ -25,10 +26,11 @@ const (
 	MessageProposalResponse
 )
 
-var ValidatedResults []*blockchain.ValidatedInfo
-var ProposalResult bool
+var validatedResults []*blockchain.ValidatedInfo
 
-type Message struct { // 다른 언어와 소통하기에도 적합한 메세지 형식 정의
+const slotTime = 10
+
+type Message struct {
 	Kind    MessageKind
 	Payload []byte
 }
@@ -39,15 +41,13 @@ func makeMessage(kind MessageKind, payload interface{}) []byte {
 		Payload: utils.ToJSON(payload),
 	}
 	return utils.ToJSON(m)
-} // 이중으로 JSON화 하는 이유? : Payload의 타입이 []byte라서
-// Payload안에는 block을 포함한 다양한 내용이 들어갈 수 있기 때문에, 범용성을 위해 []byte로 지정
-// 그래서 Unmarshal도 두번해줘야함
+}
 
 func sendNewestBlock(p *peer) {
 	fmt.Printf("Sending newest block to %s\n", p.key)
 	block, err := blockchain.FindBlock(blockchain.Blockchain().NewestHash)
 	utils.HandleErr(err)
-	m := makeMessage(MessageNewestBlock, block) // JSON 바이트로 인코딩 된 메세지 반환
+	m := makeMessage(MessageNewestBlock, block)
 	p.inbox <- m
 }
 
@@ -96,14 +96,14 @@ func notifyValidatedResult(validatedInfo *blockchain.ValidatedInfo, p *peer) {
 	p.inbox <- m
 }
 
-func notifyProposalResult(result bool, p *peer) {
-	m := makeMessage(MessageProposalResponse, result)
+func notifyProposalResult(proposalResult *blockchain.ValidatedInfo, p *peer) {
+	m := makeMessage(MessageProposalResponse, proposalResult)
 	p.inbox <- m
 }
 
-func handleMsg(m *Message, p *peer) { // 들어오는 메세지의 유형에 따라 어떻게 처리할지 분류 및 처리
+func handleMsg(m *Message, p *peer) {
 	switch m.Kind {
-	case MessageNewestBlock: // 3000번 입장에서 4000번으로부터의 메세지를 받고 있는 상황
+	case MessageNewestBlock:
 		fmt.Printf("Received the newest block from %s\n", p.key)
 		var payload blockchain.Block
 		utils.HandleErr(json.Unmarshal(m.Payload, &payload))
@@ -111,85 +111,91 @@ func handleMsg(m *Message, p *peer) { // 들어오는 메세지의 유형에 따
 		utils.HandleErr(err)
 		if payload.Height > b.Height { // 우리 노드의 최신블록보다 블록높이가 높은지 확인 -> 뒤처지는지 앞서는지
 			fmt.Printf("Request all block from %s\n", p.key)
-			// 4000번에게 블록전체를 요청
 			requestAllBlocks(p)
 		} else if payload.Height < b.Height {
 			fmt.Printf("Sending newest block from %s\n", p.key)
-			// 4000번에게 우리의 블록들을 전달
 			sendNewestBlock(p)
 		}
+
 	case MessageAllBlocksRequest:
 		fmt.Printf("%s wants all the blocks.\n", p.key)
 		sendAllBlocks(p)
+
 	case MessageAllBlocksResponse:
 		fmt.Printf("Received all the blocks from %s\n", p.key)
 		var payload []*blockchain.Block
 		utils.HandleErr(json.Unmarshal(m.Payload, &payload))
 		blockchain.Blockchain().Replace(payload)
+
 	case MessageNewBlockNotify:
 		var payload *blockchain.Block
 		utils.HandleErr(json.Unmarshal(m.Payload, &payload))
 		blockchain.Blockchain().AddPeerBlock(payload)
+
 	case MessageNewTxNotify:
 		var payload *blockchain.Tx
 		utils.HandleErr(json.Unmarshal(m.Payload, &payload))
 		blockchain.Mempool().AddPeerTx(payload)
+
 	case MessageNewPeerNotify:
 		var payload string
 		utils.HandleErr(json.Unmarshal(m.Payload, &payload))
 		parts := strings.Split(payload, ":")
 		AddPeer(parts[0], parts[1], parts[2], false)
+
 	case MessageNewProposalNotify:
 		var payload *blockchain.RoleInfo
 		utils.HandleErr(json.Unmarshal(m.Payload, &payload))
-		fmt.Printf("At %d height, this %s node has been pointed as a Proposal\n", blockchain.Blockchain().Height, payload.ProposalPort)
+		fmt.Printf("At %d height, this %s node has been pointed as a Proposal\n", blockchain.Blockchain().Height+1, payload.ProposalPort)
 		newBlock := blockchain.CreateBlock(blockchain.Blockchain().NewestHash, blockchain.Blockchain().Height+1, payload.ProposalPort, payload, false)
 		fmt.Println("Just created new block :", utils.ToString(newBlock))
 		SendProposalBlock(payload, newBlock)
-		// 3000번으로부터 OK라는 답이오면
-		for ProposalResult {
-			blockchain.PersistBlock(newBlock)
-			blockchain.Blockchain().UpdateBlockchain(newBlock)
-			BroadcastNewBlock(newBlock)
-			ProposalResult = false
-			fmt.Println("Added and broadcasted the block done")
-		}
+
 	case MessageNewValidatorNotify:
-		fmt.Printf("At %d height, this node has been pointed as a Validator for 3 blocks\n", blockchain.Blockchain().Height)
+		fmt.Printf("At %d height, this node has been pointed as a Validator for 3 blocks\n", blockchain.Blockchain().Height+1)
+
 	case MessageValidateRequest:
 		var payload *validateRequest
 		utils.HandleErr(json.Unmarshal(m.Payload, &payload))
-		// 비교할 블록 구성하기
-		newBlock := blockchain.CreateBlock(blockchain.Blockchain().NewestHash, blockchain.Blockchain().Height+1, payload.RoleInfo.ProposalPort, payload.RoleInfo, false) // 제안자의 정보가 들어가야함.
+		newBlock := blockchain.CreateBlock(blockchain.Blockchain().NewestHash, blockchain.Blockchain().Height+1, payload.RoleInfo.ProposalPort, payload.RoleInfo, false)
 		fmt.Println("comparisonBlock: ", utils.ToString(newBlock))
 		// 비교하고, 검증하기
 		result := blockchain.ValidateBlock(payload.RoleInfo, payload.Block, newBlock, payload.Port)
-		fmt.Println(utils.ToString(result))
-		// true/false를 3000번에게 보내기
+		fmt.Println("validate result: ", utils.ToString(result))
 		SendValidatedResult(result)
+
 	case MessageValidateResponse:
 		var payload *blockchain.ValidatedInfo
 		utils.HandleErr(json.Unmarshal(m.Payload, &payload))
-		ValidatedResults = append(ValidatedResults, payload)
-		if len(ValidatedResults) < 3 {
-			fmt.Println(utils.ToString(ValidatedResults))
+		validatedResults = append(validatedResults, payload)
+		if len(validatedResults) < 3 {
+			fmt.Println(len(validatedResults))
 		} else { // 3개가 채워질때까지
-			fmt.Println("3 Validator Done: ", utils.ToString(ValidatedResults))
-			// 채워졌다면 과반수가 찬성인지 반대인지 확인
-
-			// 1. 과반수가 찬성일 경우 블록제안자에게 true를 보낸다
-			// 2. true를 보내면서 블록을 하나 추가할 수 있는 권한을 부여한다. → 음 이건 struct type으로 해결해야하나?
-			SendProposalResult(payload.ProposalPort, true)
-			// 3. 과반수가 반대일 경우 블록제안자에게 false를 보낸다
-			// 4. false를 보내면서 Selector로 역할을 새롭게 선정하게 하기위해, pos.go의 for문을 continue 시킨다.
-
-			// 그 뒤 다음블록의 새로운 검증자들의 결과를 받기위해서 초기화
-			ValidatedResults = []*blockchain.ValidatedInfo{}
-			fmt.Println("validatedResult clear!: ", utils.ToString(ValidatedResults))
+			fmt.Println("3 Validating Done")
+			result := blockchain.CalculateMajority(validatedResults)
+			proposalResult := &blockchain.ValidatedInfo{
+				ProposalPort:  payload.ProposalPort,
+				ProposalBlock: payload.ProposalBlock,
+				Port:          StakingPort,
+				Result:        result,
+			}
+			SendProposalResult(proposalResult)
+			validatedResults = []*blockchain.ValidatedInfo{} // 그 뒤 다음블록의 새로운 검증자들의 결과를 받기위해서 초기화
+			fmt.Println("validatedResult clear!: ", utils.ToString(validatedResults))
 		}
+
 	case MessageProposalResponse:
-		var payload bool
+		var payload *blockchain.ValidatedInfo
 		utils.HandleErr(json.Unmarshal(m.Payload, &payload))
-		ProposalResult = payload
+		fmt.Println("Proposal Result: ", payload.Result)
+		if payload.Port == StakingPort && payload.Result {
+			time.Sleep(slotTime * time.Second)
+			blockchain.PersistBlock(payload.ProposalBlock)
+			blockchain.Blockchain().UpdateBlockchain(payload.ProposalBlock)
+			BroadcastNewBlock(payload.ProposalBlock)
+			fmt.Println("Added and broadcasted the block done")
+		} else if payload.ProposalPort == StakingPort && !payload.Result {
+			fmt.Println("Proposal Rejected")
+		}
 	}
 }

@@ -1,5 +1,23 @@
 #!/bin/bash
 
+pids=$(ps aux | grep '\-mode=auto' | grep -v grep | awk '{print $2}')
+
+for pid in $pids; do
+    kill -9 $pid
+done
+
+echo "All nodes with -mode=auto have been terminated."
+
+pids=$(ps aux | grep '\-mode=rest' | grep -v grep | awk '{print $2}')
+
+for pid in $pids; do
+    kill -9 $pid
+done
+
+echo "All nodes with -mode=rest have been terminated."
+
+#####기존 노드 종료####
+
 echo "Setting up the node. It will take approximately 15 seconds."
 
 # 로딩바의 길이를 정의

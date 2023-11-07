@@ -26,9 +26,10 @@ type Block struct {
 }
 
 type ValidatedInfo struct {
-	ProposalPort string
-	Port         string
-	Result       bool
+	ProposalPort  string
+	ProposalBlock *Block
+	Port          string
+	Result        bool
 }
 
 func PersistBlock(b *Block) {
@@ -104,9 +105,10 @@ func ValidateBlock(roleInfo *RoleInfo, proposalBlock *Block, createdBlock *Block
 	//	검증프로세스
 	//
 	v := &ValidatedInfo{
-		ProposalPort: roleInfo.ProposalPort,
-		Port:         port,
-		Result:       true, // 검증 프로세스 완성전까지는 true로 제공
+		ProposalPort:  roleInfo.ProposalPort,
+		ProposalBlock: proposalBlock,
+		Port:          port,
+		Result:        true, // 검증 프로세스 완성전까지는 true로 제공
 	}
 	return v
 }
