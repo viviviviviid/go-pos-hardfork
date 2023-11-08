@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/viviviviviid/go-coin/utils"
+	"github.com/viviviviviid/go-coin/wallet"
 )
 
 type RoleInfo struct {
@@ -38,6 +39,7 @@ type ValidatedInfo struct {
 	ProposalBlock *Block
 	Port          string
 	Result        bool
+	Signature     *ValidateSignature
 }
 
 func PersistBlock(b *Block) {
@@ -48,6 +50,16 @@ var ErrNotFound = errors.New("block not found")
 
 func (b *Block) restore(data []byte) {
 	utils.FromBytes(b, data)
+}
+
+// sign 메서드는 블록에 대해 서명을 저장합니다.
+func BlockSign(b *Block, port string) *ValidateSignature {
+	sig := &ValidateSignature{
+		Port:      port,
+		Address:   wallet.Wallet(port).Address,
+		Signature: wallet.Sign(b.Hash, wallet.Wallet(port)), // 블록 id에 서명 // b.ID는 Block struct를 해쉬화한 값
+	}
+	return sig
 }
 
 func FindBlock(hash string) (*Block, error) {
@@ -111,6 +123,7 @@ func createGenesisBlock() *Block {
 // 블록의 유효성을 검증하는 함수
 func ValidateBlock(roleInfo *RoleInfo, proposalBlock *Block, createdBlock *Block, port string) *ValidatedInfo {
 	var result = true
+	var sig *ValidateSignature
 
 	if proposalBlock.PrevHash != createdBlock.PrevHash {
 		fmt.Println("Not pass: prev")
@@ -128,12 +141,15 @@ func ValidateBlock(roleInfo *RoleInfo, proposalBlock *Block, createdBlock *Block
 		fmt.Println("Not pass: roleinfo")
 		result = false
 	}
-
+	if result {
+		sig = BlockSign(proposalBlock, port)
+	}
 	v := &ValidatedInfo{
 		ProposalPort:  roleInfo.ProposalPort,
 		ProposalBlock: proposalBlock,
 		Port:          port,
 		Result:        result,
+		Signature:     sig,
 	}
 
 	return v
