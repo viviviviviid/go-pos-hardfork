@@ -88,14 +88,24 @@ func documentation(rw http.ResponseWriter, r *http.Request) {
 			Description: "See Documentation",
 		},
 		{
+			URL:         url("/blocks"),
+			Method:      "GET",
+			Description: "See All Block",
+		},
+		{
 			URL:         url("/status"),
 			Method:      "GET",
 			Description: "See the Status of the Blockchain",
 		},
 		{
-			URL:         url("/blocks"),
+			URL:         url("/balance"),
 			Method:      "GET",
-			Description: "See All Block",
+			Description: "See My Wallet's Balance",
+		},
+		{
+			URL:         url("/wallet"),
+			Method:      "GET",
+			Description: "See My Wallet's Address",
 		},
 		{
 			URL:         url("/peer"),
@@ -165,6 +175,11 @@ func balance(rw http.ResponseWriter, r *http.Request) {
 	default:
 		utils.HandleErr(json.NewEncoder(rw).Encode(blockchain.UTxOutsByAddress(address, blockchain.Blockchain())))
 	}
+}
+
+func myBalance(rw http.ResponseWriter, r *http.Request) {
+	amount := blockchain.BalanceByAddress(wallet.Wallet(port[1:]).Address, blockchain.Blockchain())
+	json.NewEncoder(rw).Encode(BalanceResponse{wallet.Wallet(port[1:]).Address, amount})
 }
 
 func mempool(rw http.ResponseWriter, r *http.Request) {
@@ -267,7 +282,8 @@ func Start(aPort int) {
 	router.HandleFunc("/status", status)
 	router.HandleFunc("/blocks", blocks).Methods("GET", "POST")
 	router.HandleFunc("/blocks/{hash:[a-f0-9]+}", block).Methods("GET") // hash: hexadecimal 타입 // [a-f0-9] 이렇게해야 둘다 받을 수 있음
-	router.HandleFunc("/balance/{address}", balance).Methods("GET")
+	router.HandleFunc("/balance", myBalance).Methods("GET")
+	router.HandleFunc("/balances/{address}", balance).Methods("GET")
 	router.HandleFunc("/mempool", mempool).Methods("GET")
 	router.HandleFunc("/wallet", myWallet).Methods("GET")
 	router.HandleFunc("/transactions", transactions).Methods("POST")
