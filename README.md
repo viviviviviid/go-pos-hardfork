@@ -8,8 +8,10 @@ Go Blockchain Hardfork Project (PoW -> PoS)
 ```
 ./run_nodes.sh
 ```
-4. enjoy in api.http file
-5. kill all nodes using this command
+4. open http://localhost:4000/
+5. enjoy all pages
+6. Blocks will be added to the chain every 5 seconds. Check http://localhost:4000/blocks)
+7. kill all nodes using this command
 ```
 ./kill_nodes.sh
 ```
