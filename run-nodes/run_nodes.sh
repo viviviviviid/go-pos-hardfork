@@ -74,3 +74,5 @@ echo
 echo
 echo
 echo "Now, 10 Nodes are Running! Good Luck!"
+
+open http://localhost:4000

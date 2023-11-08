@@ -98,24 +98,14 @@ func documentation(rw http.ResponseWriter, r *http.Request) {
 			Description: "See All Block",
 		},
 		{
-			URL:         url("/blocks"),
-			Method:      "POST",
-			Description: "Add A Block",
-		},
-		{
-			URL:         url("/blocks/{hash}"),
-			Method:      "POST",
-			Description: "See A Block",
-		},
-		{
-			URL:         url("/balance/{address}"),
+			URL:         url("/peer"),
 			Method:      "GET",
-			Description: "Get TxOuts for an address",
+			Description: "See All Peer",
 		},
 		{
-			URL:         url("/ws"),
+			URL:         url("/staking"),
 			Method:      "GET",
-			Description: "Upgrade to WebSockets",
+			Description: "See All Staking Member",
 		},
 	}
 	utils.HandleErr(json.NewEncoder(rw).Encode(data))
