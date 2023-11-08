@@ -295,3 +295,54 @@ func CheckLockupPeriod(timeStamp int) (ok bool, gapTime int) {
 	}
 	return false, gapTime - MonthToSec
 }
+
+func compareTransactions(txs1, txs2 []*Tx) bool {
+	if len(txs1) != len(txs2) {
+		return false
+	}
+	for i := range txs1 {
+		if !compareSingleTransaction(txs1[i], txs2[i]) {
+			return false
+		}
+	}
+	return true
+}
+
+func compareSingleTransaction(tx1, tx2 *Tx) bool {
+	if tx1.InputData != tx2.InputData {
+		return false
+	}
+	if !compareTxIns(tx1.TxIns, tx2.TxIns) {
+		return false
+	}
+	if !compareTxOuts(tx1.TxOuts, tx2.TxOuts) {
+		return false
+	}
+	return true
+}
+
+func compareTxIns(ins1, ins2 []*TxIn) bool {
+	if len(ins1) != len(ins2) {
+		return false
+	}
+	for i, in1 := range ins1 {
+		in2 := ins2[i]
+		if in1.TxID != in2.TxID || in1.Index != in2.Index || in1.Signature != in2.Signature {
+			return false
+		}
+	}
+	return true
+}
+
+func compareTxOuts(outs1, outs2 []*TxOut) bool {
+	if len(outs1) != len(outs2) {
+		return false
+	}
+	for i, out1 := range outs1 {
+		out2 := outs2[i]
+		if out1.Address != out2.Address || out1.Amount != out2.Amount {
+			return false
+		}
+	}
+	return true
+}

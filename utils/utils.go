@@ -70,3 +70,15 @@ func FormatTimeFromSeconds(sec int) string {
 	seconds := sec % 60
 	return fmt.Sprintf("스테이킹 언락까지 %d일 %d시간 %d분 %d초 남았습니다. 인출은 그 이후에 가능합니다.", days, hours, minutes, seconds)
 }
+
+func CompareStringSlices(s1, s2 []string) bool {
+	if len(s1) != len(s2) {
+		return false
+	}
+	for i := range s1 {
+		if s1[i] != s2[i] {
+			return false
+		}
+	}
+	return true
+}

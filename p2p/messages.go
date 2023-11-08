@@ -158,17 +158,18 @@ func handleMsg(m *Message, p *peer) {
 		fmt.Println("comparisonBlock: ", utils.ToString(newBlock))
 		// 비교하고, 검증하기
 		result := blockchain.ValidateBlock(payload.RoleInfo, payload.Block, newBlock, payload.Port)
-		fmt.Println("validate result: ", utils.ToString(result))
+		fmt.Println("validate result: ", utils.ToString(result.Result))
 		SendValidatedResult(result)
 
 	case MessageValidateResponse:
 		var payload *blockchain.ValidatedInfo
 		utils.HandleErr(json.Unmarshal(m.Payload, &payload))
 		validatedResults = append(validatedResults, payload)
-		if len(validatedResults) < 3 {
-			fmt.Println(len(validatedResults))
-		} else { // 3개가 채워질때까지
-			fmt.Println("3 Validating Done")
+		if len(validatedResults) == 3 {
+			for _, v := range validatedResults {
+				fmt.Print(v.Port, " ")
+			}
+			fmt.Println("All Validator's message is arrived")
 			result := blockchain.CalculateMajority(validatedResults)
 			proposalResult := &blockchain.ValidatedInfo{
 				ProposalPort:  payload.ProposalPort,
@@ -178,13 +179,12 @@ func handleMsg(m *Message, p *peer) {
 			}
 			SendProposalResult(proposalResult)
 			validatedResults = []*blockchain.ValidatedInfo{} // 그 뒤 다음블록의 새로운 검증자들의 결과를 받기위해서 초기화
-			fmt.Println("validatedResult clear!: ", utils.ToString(validatedResults))
 		}
 
 	case MessageProposalResponse:
 		var payload *blockchain.ValidatedInfo
 		utils.HandleErr(json.Unmarshal(m.Payload, &payload))
-		fmt.Println("Proposal Result: ", payload.Result)
+		// fmt.Println("Proposal Result: ", payload.Result) // @@@@@@@@@@@@@@@@@@
 		if payload.Port == StakingPort && payload.Result {
 			blockchain.PersistBlock(payload.ProposalBlock)
 			blockchain.Blockchain().UpdateBlockchain(payload.ProposalBlock)

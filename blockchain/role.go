@@ -100,3 +100,12 @@ func CalculateMajority(v []*ValidatedInfo) bool {
 	fmt.Printf("PASS: %d \nFAIL: %d\n", pass, fail)
 	return pass > fail
 }
+
+func compareRoleInfo(r1, r2 *RoleInfo) bool {
+	return r1.ProposalAddress == r2.ProposalAddress &&
+		r1.ProposalPort == r2.ProposalPort &&
+		r1.ProposalSelectedHeight == r2.ProposalSelectedHeight &&
+		utils.CompareStringSlices(r1.ValidatorAddress, r2.ValidatorAddress) &&
+		utils.CompareStringSlices(r1.ValidatorPort, r2.ValidatorPort) &&
+		r1.ValidatorSelectedHeight == r2.ValidatorSelectedHeight
+}

@@ -2,6 +2,7 @@ package blockchain
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/viviviviviid/go-coin/utils"
@@ -23,6 +24,13 @@ type Block struct {
 	Timestamp   int    `json:"timestamp"`
 	Transaction []*Tx  `json:"transaction"`
 	RoleInfo    *RoleInfo
+	Signature   []*ValidateSignature
+}
+
+type ValidateSignature struct {
+	Port      string
+	Address   string
+	Signature string
 }
 
 type ValidatedInfo struct {
@@ -100,15 +108,33 @@ func createGenesisBlock() *Block {
 	return block
 }
 
+// 블록의 유효성을 검증하는 함수
 func ValidateBlock(roleInfo *RoleInfo, proposalBlock *Block, createdBlock *Block, port string) *ValidatedInfo {
-	//
-	//	검증프로세스
-	//
+	var result = true
+
+	if proposalBlock.PrevHash != createdBlock.PrevHash {
+		fmt.Println("Not pass: prev")
+		result = false
+	}
+	if proposalBlock.Height != createdBlock.Height {
+		fmt.Println("Not pass: height")
+		result = false
+	}
+	if !compareTransactions(proposalBlock.Transaction, createdBlock.Transaction) {
+		fmt.Println("Not pass: tx")
+		result = false
+	}
+	if !compareRoleInfo(proposalBlock.RoleInfo, createdBlock.RoleInfo) {
+		fmt.Println("Not pass: roleinfo")
+		result = false
+	}
+
 	v := &ValidatedInfo{
 		ProposalPort:  roleInfo.ProposalPort,
 		ProposalBlock: proposalBlock,
 		Port:          port,
-		Result:        true, // 검증 프로세스 완성전까지는 true로 제공
+		Result:        result,
 	}
+
 	return v
 }
