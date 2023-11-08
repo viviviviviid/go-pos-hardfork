@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/viviviviviid/go-coin/blockchain"
 	"github.com/viviviviviid/go-coin/utils"
@@ -27,8 +26,6 @@ const (
 )
 
 var validatedResults []*blockchain.ValidatedInfo
-
-const slotTime = 10
 
 type Message struct {
 	Kind    MessageKind
@@ -189,7 +186,6 @@ func handleMsg(m *Message, p *peer) {
 		utils.HandleErr(json.Unmarshal(m.Payload, &payload))
 		fmt.Println("Proposal Result: ", payload.Result)
 		if payload.Port == StakingPort && payload.Result {
-			time.Sleep(slotTime * time.Second)
 			blockchain.PersistBlock(payload.ProposalBlock)
 			blockchain.Blockchain().UpdateBlockchain(payload.ProposalBlock)
 			BroadcastNewBlock(payload.ProposalBlock)

@@ -42,8 +42,7 @@ func (p *peer) close() {
 	delete(Peers.v, p.key) // golang map 내용 삭제방법
 }
 
-func (p *peer) read() {
-	// 에러 발생 시 peer 제거
+func (p *peer) read() { // 에러 발생 시 peer 제거
 	defer p.close() // defer: 함수 종료후 실행되는 코드라인
 	for {
 		m := Message{}
@@ -78,7 +77,6 @@ func initPeer(conn *websocket.Conn, address, port string) *peer {
 		key:     key,
 		port:    port,
 	}
-
 	go p.read() // peer로부터 msg를 읽어오는 go 루틴 // 끊기지 않고, 다른 코드를 block하지 않고
 	go p.write()
 	Peers.v[key] = p

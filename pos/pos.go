@@ -12,6 +12,7 @@ import (
 const (
 	stakingPort     = "3000"
 	nodeSettingTime = 20
+	slotTime        = 10
 )
 
 // 3000 port has a staking address of this PoS chain. So this port is selecting Proposal and Validator
@@ -32,5 +33,6 @@ func PoS(aPort int) {
 		for blockchain.Blockchain().Height == height {
 			// 블록추가될때까지 대기
 		}
+		time.Sleep(slotTime * time.Second)
 	}
 }
