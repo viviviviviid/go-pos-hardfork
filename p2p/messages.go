@@ -170,7 +170,7 @@ func handleMsg(m *Message, p *peer) {
 				fmt.Print(v.Port, " ")
 				validateSignature = append(validateSignature, v.Signature)
 			}
-			fmt.Println("All Validator's message is arrived")
+			fmt.Println("\nAll Validator's message is arrived")
 			result := blockchain.CalculateMajority(validatedResults)
 			proposalResult := &blockchain.ValidatedInfo{
 				ProposalPort:  payload.ProposalPort,
@@ -191,9 +191,6 @@ func handleMsg(m *Message, p *peer) {
 			blockchain.PersistBlock(payload.ProposalBlock)
 			blockchain.Blockchain().UpdateBlockchain(payload.ProposalBlock)
 			BroadcastNewBlock(payload.ProposalBlock)
-			fmt.Println("Added and broadcasted the block done")
-		} else if payload.ProposalPort == StakingPort && !payload.Result {
-			fmt.Println("Proposal Rejected")
 		}
 	}
 }

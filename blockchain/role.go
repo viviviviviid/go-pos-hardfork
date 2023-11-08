@@ -82,7 +82,7 @@ func (b *blockchain) Selector() (*RoleInfo, error) {
 		r.selectProposal(b, stakingInfoList)
 	}
 
-	fmt.Println(utils.ToString(r))
+	fmt.Printf("Seleted Roles for the next block:\n%s\n", utils.ToString(r))
 
 	return r, nil
 }

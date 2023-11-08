@@ -1,6 +1,7 @@
 package pos
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/viviviviviid/go-coin/blockchain"
@@ -19,9 +20,8 @@ const (
 func PoS(aPort int) {
 	go rest.Start(aPort)
 	time.Sleep(nodeSettingTime * time.Second)
-
 	for {
-		height := blockchain.Blockchain().Height
+		lastHeight := blockchain.Blockchain().Height
 		roleInfo, err := blockchain.Blockchain().Selector()
 		if err != nil {
 			utils.HandleErr(err)
@@ -29,10 +29,13 @@ func PoS(aPort int) {
 		}
 		p2p.PointingProposal(roleInfo)
 		p2p.PointingValidator(roleInfo)
-
-		for blockchain.Blockchain().Height == height {
-			// 블록추가될때까지 대기
-		}
 		time.Sleep(slotTime * time.Second)
+		if blockchain.Blockchain().Height == lastHeight {
+			fmt.Println("Proposal Rejected.")
+		} else if blockchain.Blockchain().Height-lastHeight == 1 {
+			fmt.Println("Added and broadcasted the block done.")
+		} else {
+			fmt.Println("Warning: Block Height was twisted.")
+		}
 	}
 }
