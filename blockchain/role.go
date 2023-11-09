@@ -1,19 +1,20 @@
 package blockchain
 
 import (
-	"errors"
 	"fmt"
 	"math/rand"
+	"time"
 
 	"github.com/viviviviviid/go-coin/utils"
 )
 
 var (
-	ErrLeastStaker = errors.New("PoS requires at least 4 Stakers to run")
+	ResLeastStaker = "PoS requires at least 4 Stakers to run"
 	stakingAddress = "c8546a75af42fd63669afa3d2e72b3567790aa8f2a54da1abb94ec03239c76638f45ada90e6e2a5af42efff001a66d90106fa898ae55d3168b11d9e120a0763d"
 )
 
 const (
+	slotTime      = 12
 	Epoch         = 3 // 실제는 32
 	genesisHeight = 1
 )
@@ -61,14 +62,16 @@ func (r *RoleInfo) selectProposal(b *blockchain, stakingList []*StakingInfo) {
 	r.ProposalSelectedHeight = b.Height + 1 // b.Height는 현재 높이이고, 이제 추가할 블록의 높이는 +1로 해야함
 }
 
-func (b *blockchain) Selector() (*RoleInfo, error) {
+func (b *blockchain) Selector() (*RoleInfo, string) {
 	r := &RoleInfo{}
 
 	_, stakingWalletTx, _ := UTxOutsByStakingAddress(stakingAddress, b)
 	stakingInfoList := GetStakingList(stakingWalletTx, b)
 
 	if len(stakingInfoList) <= 3 {
-		return nil, ErrLeastStaker
+		fmt.Println(ResLeastStaker)
+		time.Sleep(slotTime * time.Second)
+		return nil, ResLeastStaker
 	}
 
 	if b.Height%Epoch == 0 {
@@ -84,7 +87,7 @@ func (b *blockchain) Selector() (*RoleInfo, error) {
 
 	fmt.Printf("Seleted Roles for the next block:\n%s\n", utils.ToString(r))
 
-	return r, nil
+	return r, ""
 }
 
 func CalculateMajority(v []*ValidatedInfo) bool {
@@ -108,4 +111,14 @@ func compareRoleInfo(r1, r2 *RoleInfo) bool {
 		utils.CompareStringSlices(r1.ValidatorAddress, r2.ValidatorAddress) &&
 		utils.CompareStringSlices(r1.ValidatorPort, r2.ValidatorPort) &&
 		r1.ValidatorSelectedHeight == r2.ValidatorSelectedHeight
+}
+
+func (b *blockchain) CheckProposalSuccess(lastHeight int) {
+	if b.Height == lastHeight {
+		fmt.Println("Proposal Rejected.")
+	} else if b.Height-lastHeight == 1 {
+		fmt.Println("Added and broadcasted the block done.")
+	} else {
+		fmt.Println("Warning: Block Height was twisted.")
+	}
 }

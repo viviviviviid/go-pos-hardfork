@@ -117,6 +117,11 @@ func documentation(rw http.ResponseWriter, r *http.Request) {
 			Method:      "GET",
 			Description: "See All Staking Member",
 		},
+		{
+			URL:         url("/mempool"),
+			Method:      "GET",
+			Description: "See All Mempool",
+		},
 	}
 	utils.HandleErr(json.NewEncoder(rw).Encode(data))
 }
@@ -264,10 +269,10 @@ func checkStaking(rw http.ResponseWriter, r *http.Request) {
 }
 
 func proposal(rw http.ResponseWriter, r *http.Request) {
-	roleInfo, err := blockchain.Blockchain().Selector()
-	if err != nil {
+	roleInfo, res := blockchain.Blockchain().Selector()
+	if res != "" {
 		rw.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(rw).Encode(errorResponse{err.Error()})
+		json.NewEncoder(rw).Encode(res)
 		return
 	}
 	p2p.PointingProposal(roleInfo)
