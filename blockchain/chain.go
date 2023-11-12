@@ -16,10 +16,10 @@ type blockchain struct {
 }
 
 type StakingInfo struct {
-	ID        string
-	Address   string
-	Port      string
-	TimeStamp int
+	ID        string `json:"id"`
+	Address   string `json:"address"`
+	Port      string `json:"port"`
+	TimeStamp int    `json:"timestamp"`
 }
 
 type storage interface {

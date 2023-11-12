@@ -137,7 +137,7 @@ func makeCoinbaseTx(roleInfo *RoleInfo) *Tx {
 		Timestamp: int(time.Now().Unix()),
 		TxIns:     txIns,
 		TxOuts:    txOuts,
-		InputData: "From chain",
+		InputData: "Proof of Stake",
 	}
 	tx.getId()
 	return &tx

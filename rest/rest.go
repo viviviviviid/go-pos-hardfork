@@ -59,6 +59,7 @@ type BalanceResponse struct {
 }
 
 type myWalletResponse struct {
+	Port    string `json:"port"`
 	Address string `json:"address"`
 }
 
@@ -67,9 +68,9 @@ type errorResponse struct {
 }
 
 type addTxPayload struct {
-	To        string
-	Amount    int
-	InputData string
+	To        string `json:"to"`
+	Amount    int    `json:"amount"`
+	InputData string `json:"inputData"`
 }
 
 type addPeerPayload struct {
@@ -206,7 +207,7 @@ func transactions(rw http.ResponseWriter, r *http.Request) {
 
 func myWallet(rw http.ResponseWriter, r *http.Request) {
 	address := wallet.Wallet(port[1:]).Address
-	json.NewEncoder(rw).Encode(myWalletResponse{Address: address})
+	json.NewEncoder(rw).Encode(myWalletResponse{Port: port[1:], Address: address})
 }
 
 func peers(rw http.ResponseWriter, r *http.Request) {

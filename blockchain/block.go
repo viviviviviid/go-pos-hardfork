@@ -10,36 +10,36 @@ import (
 )
 
 type RoleInfo struct {
-	ProposalAddress         string
-	ProposalPort            string
-	ProposalSelectedHeight  int
-	ValidatorAddress        []string
-	ValidatorPort           []string
-	ValidatorSelectedHeight int
+	ProposalAddress         string   `json:"proposalAddress"`
+	ProposalPort            string   `json:"proposalPort"`
+	ProposalSelectedHeight  int      `json:"proposalSelectedHeight"`
+	ValidatorAddress        []string `json:"validatorAddress"`
+	ValidatorPort           []string `json:"validatorPort"`
+	ValidatorSelectedHeight int      `json:"validatorSelectedHeight"`
 }
 
 type Block struct {
-	Hash        string `json:"hash"`
-	PrevHash    string `json:"prevHash,omitempty"` // omitempty option
-	Height      int    `json:"height"`
-	Timestamp   int    `json:"timestamp"`
-	Transaction []*Tx  `json:"transaction"`
-	RoleInfo    *RoleInfo
-	Signature   []*ValidateSignature
+	Hash        string               `json:"hash"`
+	PrevHash    string               `json:"prevHash,omitempty"` // omitempty option
+	Height      int                  `json:"height"`
+	Timestamp   int                  `json:"timestamp"`
+	Transaction []*Tx                `json:"transaction"`
+	RoleInfo    *RoleInfo            `json:"roleinfo"`
+	Signature   []*ValidateSignature `json:"signature"`
 }
 
 type ValidateSignature struct {
-	Port      string
-	Address   string
-	Signature string
+	Port      string `json:"port"`
+	Address   string `json:"address"`
+	Signature string `json:"signature"`
 }
 
 type ValidatedInfo struct {
-	ProposalPort  string
-	ProposalBlock *Block
-	Port          string
-	Result        bool
-	Signature     *ValidateSignature
+	ProposalPort  string             `json:"proposalPort"`
+	ProposalBlock *Block             `json:"proposalBlock"`
+	Port          string             `json:"port"`
+	Result        bool               `json:"result"`
+	Signature     *ValidateSignature `json:"signature"`
 }
 
 func PersistBlock(b *Block) {
