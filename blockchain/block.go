@@ -62,6 +62,7 @@ func BlockSign(b *Block, port string) *ValidateSignature {
 	return sig
 }
 
+// 블록 해시로 특정 블록을 조회합니다
 func FindBlock(hash string) (*Block, error) {
 	blockBytes := dbStorage.FindBlock(hash)
 	if blockBytes == nil {
@@ -72,6 +73,7 @@ func FindBlock(hash string) (*Block, error) {
 	return block, nil
 }
 
+// 블록 구성 함수
 func CreateBlock(prevHash string, height int, port string, roleInfo *RoleInfo, update bool) *Block {
 	block := &Block{
 		Hash:     "",
@@ -98,6 +100,7 @@ func CreateBlock(prevHash string, height int, port string, roleInfo *RoleInfo, u
 	return block
 }
 
+// 제네시스 블록 구성 함수
 func createGenesisBlock() *Block {
 	roleInfo := &RoleInfo{
 		ProposalAddress:         "Genesis",
@@ -113,7 +116,7 @@ func createGenesisBlock() *Block {
 		Height:   1,
 	}
 	block.Transaction = Mempool().GenesisTxToConfirm()
-	block.Timestamp = 1231006505 // bitcoin genesis block's timestamp
+	block.Timestamp = 1231006505 // 비트코인 제네시스 블록의 실제 타임스탬프
 	block.RoleInfo = roleInfo
 	block.Hash = utils.Hash(b)
 	PersistBlock(block)
