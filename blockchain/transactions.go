@@ -9,7 +9,6 @@ import (
 	"github.com/viviviviviid/go-coin/wallet"
 )
 
-// minerReward는 채굴자 즉 제안자에게 주어지는 보상입니다.
 const (
 	proposalReward  int = 50 // 제안자 보상
 	validatorReward int = 10 // 검증자 보상
@@ -137,25 +136,6 @@ func makeCoinbaseTx(roleInfo *RoleInfo) *Tx {
 	return &tx
 }
 
-// 제네시스 트랜잭션 생성
-func makeGenesisTx() *Tx {
-	txIns := []*TxIn{
-		{"", -1, "COINBASE"}, // 소유주는 채굴자
-	}
-	txOuts := []*TxOut{
-		{"", proposalReward},
-	}
-	tx := Tx{
-		ID:        "",
-		Timestamp: 1231006505,
-		TxIns:     txIns,
-		TxOuts:    txOuts,
-		InputData: "Genesis Block",
-	}
-	tx.getId()
-	return &tx
-}
-
 var ErrorNoMoney = errors.New("not enough money")
 var ErrorNotValid = errors.New("Tx Invalid")
 
@@ -250,18 +230,6 @@ func (m *mempool) AddTxFromStakingAddress(from, to, inputData, mainPort string, 
 // 확인할 트랜잭션들을 반환
 func (m *mempool) TxToConfirm(port string, roleInfo *RoleInfo) []*Tx {
 	coinbase := makeCoinbaseTx(roleInfo)
-	var txs []*Tx
-	for _, tx := range m.Txs {
-		txs = append(txs, tx)
-	}
-	txs = append(txs, coinbase)
-	m.Txs = make(map[string]*Tx)
-	return txs
-}
-
-// 제네시스 블록 확인
-func (m *mempool) GenesisTxToConfirm() []*Tx {
-	coinbase := makeGenesisTx()
 	var txs []*Tx
 	for _, tx := range m.Txs {
 		txs = append(txs, tx)

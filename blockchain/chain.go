@@ -61,13 +61,6 @@ func (b *blockchain) AddBlock(port string, roleInfo *RoleInfo) *Block {
 	return block
 }
 
-// 최초 상태의 블록체인에 제네시스 블록 추가 (위 AddBlock과 구분한 이유는 비트코인의 타임스탬프 등 여러가지 조건을 넣고 싶어서)
-func (b *blockchain) AddGenesisBlock() *Block {
-	block := createGenesisBlock()
-	b.UpdateBlockchain(block)
-	return block
-}
-
 // 전체 블록 탐색 후 반환
 func Blocks(b *blockchain) []*Block {
 	b.m.Lock()

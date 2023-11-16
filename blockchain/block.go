@@ -102,29 +102,6 @@ func CreateBlock(prevHash string, height int, port string, roleInfo *RoleInfo, u
 	return block
 }
 
-// 제네시스 블록 구성 함수
-func createGenesisBlock() *Block {
-	roleInfo := &RoleInfo{
-		ProposalAddress:         "Genesis",
-		ProposalPort:            "3000",
-		ProposalSelectedHeight:  1,
-		ValidatorAddress:        []string{"Genesis", "Genesis", "Genesis"},
-		ValidatorPort:           []string{"3000", "3000", "3000"},
-		ValidatorSelectedHeight: 1,
-	}
-	block := &Block{
-		Hash:     "",
-		PrevHash: "",
-		Height:   1,
-	}
-	block.Transaction = Mempool().GenesisTxToConfirm()
-	block.Timestamp = 1231006505 // 비트코인 제네시스 블록의 실제 타임스탬프
-	block.RoleInfo = roleInfo
-	block.Hash = utils.Hash(b)
-	PersistBlock(block)
-	return block
-}
-
 // 블록 유효성 검증
 func ValidateBlock(roleInfo *RoleInfo, proposalBlock *Block, createdBlock *Block, port string) *ValidatedInfo {
 	var result = true
