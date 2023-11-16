@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"math/rand"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -73,6 +74,12 @@ type addTxPayload struct {
 	InputData string `json:"inputData"`
 }
 
+type checkTx struct {
+	URL         url            `json:"url"`
+	Description string         `json:"description"`
+	Tx          *blockchain.Tx `json:"tx"`
+}
+
 type addPeerPayload struct {
 	Address, Port string
 }
@@ -122,6 +129,11 @@ func documentation(rw http.ResponseWriter, r *http.Request) {
 			URL:         url("/mempool"),
 			Method:      "GET",
 			Description: "See All Mempool",
+		},
+		{
+			URL:         url("/transaction"),
+			Method:      "POST",
+			Description: "Add a Random Transaction to the Mempool",
 		},
 	}
 	utils.HandleErr(json.NewEncoder(rw).Encode(data))
@@ -203,6 +215,25 @@ func transactions(rw http.ResponseWriter, r *http.Request) {
 	}
 	p2p.BroadcastNewTx(tx)
 	rw.WriteHeader(http.StatusCreated)
+}
+
+func randomTransaction(rw http.ResponseWriter, r *http.Request) {
+	var randomQuantity = rand.Intn(50)
+	var randomTo = utils.Hash(randomQuantity)
+	tx, err := blockchain.Mempool().AddTx(randomTo, randomQuantity, "Random Transaction", port[1:])
+	if err != nil {
+		rw.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(rw).Encode(errorResponse{err.Error()})
+		return
+	}
+	p2p.BroadcastNewTx(tx)
+	rw.WriteHeader(http.StatusCreated)
+	json.NewEncoder(rw).Encode(&checkTx{
+		URL:         url("/mempool"),
+		Description: "Check Mempool before Block Confirm. If you missed this chance, then you can find the Transaction on /blocks",
+		Tx:          tx,
+	},
+	)
 }
 
 func myWallet(rw http.ResponseWriter, r *http.Request) {
@@ -292,6 +323,7 @@ func Start(aPort int) {
 	router.HandleFunc("/balances/{address}", balance).Methods("GET")
 	router.HandleFunc("/mempool", mempool).Methods("GET")
 	router.HandleFunc("/wallet", myWallet).Methods("GET")
+	router.HandleFunc("/transaction", randomTransaction).Methods("GET")
 	router.HandleFunc("/transactions", transactions).Methods("POST")
 	router.HandleFunc("/ws", p2p.Upgrade).Methods("GET")
 	router.HandleFunc("/peer", peers).Methods("GET", "POST")
