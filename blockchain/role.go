@@ -15,10 +15,11 @@ var (
 
 const (
 	slotTime      = 12
-	Epoch         = 3 // 실제는 32
+	Epoch         = 3 // 이더리움은 32
 	genesisHeight = 1
 )
 
+// 검증자 선정
 func (r *RoleInfo) selectValidator(b *blockchain, stakingList []*StakingInfo) {
 	selectedNumbers := make(map[int]bool)
 	var result []int
@@ -40,6 +41,7 @@ func (r *RoleInfo) selectValidator(b *blockchain, stakingList []*StakingInfo) {
 	r.ValidatorSelectedHeight = b.Height + 1 // b.Height는 현재 높이이고, 이제 추가할 블록의 높이는 +1로 해야함
 }
 
+// 제안자 선정
 func (r *RoleInfo) selectProposal(b *blockchain, stakingList []*StakingInfo) {
 	var selected *StakingInfo
 	for {
@@ -62,6 +64,7 @@ func (r *RoleInfo) selectProposal(b *blockchain, stakingList []*StakingInfo) {
 	r.ProposalSelectedHeight = b.Height + 1 // b.Height는 현재 높이이고, 이제 추가할 블록의 높이는 +1로 해야함
 }
 
+// 지정된 슬롯과 에포크에 따른 검증자와 제안자 선정
 func (b *blockchain) Selector() (*RoleInfo, string) {
 	r := &RoleInfo{}
 
@@ -90,6 +93,7 @@ func (b *blockchain) Selector() (*RoleInfo, string) {
 	return r, ""
 }
 
+// 검증자들의 검증 결과 과반수 계산
 func CalculateMajority(v []*ValidatedInfo) bool {
 	pass := 0
 	fail := 0
@@ -104,6 +108,7 @@ func CalculateMajority(v []*ValidatedInfo) bool {
 	return pass > fail
 }
 
+// 검증 중 RoleInfo 내용 비교
 func compareRoleInfo(r1, r2 *RoleInfo) bool {
 	return r1.ProposalAddress == r2.ProposalAddress &&
 		r1.ProposalPort == r2.ProposalPort &&
@@ -113,6 +118,7 @@ func compareRoleInfo(r1, r2 *RoleInfo) bool {
 		r1.ValidatorSelectedHeight == r2.ValidatorSelectedHeight
 }
 
+// 블록 제안 성공 유무
 func (b *blockchain) CheckProposalSuccess(lastHeight int) {
 	if b.Height == lastHeight {
 		fmt.Println("Proposal Rejected.")

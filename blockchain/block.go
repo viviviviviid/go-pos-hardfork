@@ -10,65 +10,67 @@ import (
 )
 
 type RoleInfo struct {
-	ProposalAddress         string   `json:"proposalAddress"`
-	ProposalPort            string   `json:"proposalPort"`
-	ProposalSelectedHeight  int      `json:"proposalSelectedHeight"`
-	ValidatorAddress        []string `json:"validatorAddress"`
-	ValidatorPort           []string `json:"validatorPort"`
-	ValidatorSelectedHeight int      `json:"validatorSelectedHeight"`
+	ProposalAddress         string   `json:"proposalAddress"`         // 제안자의 주소
+	ProposalPort            string   `json:"proposalPort"`            // 제안자의 노드 포트
+	ProposalSelectedHeight  int      `json:"proposalSelectedHeight"`  // 제안자가 선정된 블록 높이
+	ValidatorAddress        []string `json:"validatorAddress"`        // 검증자 주소
+	ValidatorPort           []string `json:"validatorPort"`           // 검증자의 노드 포트
+	ValidatorSelectedHeight int      `json:"validatorSelectedHeight"` // 검증자가 선정된 블록 높이
 }
 
 type Block struct {
-	Hash        string               `json:"hash"`
-	PrevHash    string               `json:"prevHash,omitempty"` // omitempty option
-	Height      int                  `json:"height"`
-	Timestamp   int                  `json:"timestamp"`
-	Transaction []*Tx                `json:"transaction"`
-	RoleInfo    *RoleInfo            `json:"roleinfo"`
-	Signature   []*ValidateSignature `json:"signature"`
+	Hash        string               `json:"hash"`               // 블록의 해시 값
+	PrevHash    string               `json:"prevHash,omitempty"` // 직전 블록의 해시 값
+	Height      int                  `json:"height"`             // 블록 높이
+	Timestamp   int                  `json:"timestamp"`          // 블록 생성 타임스탬프
+	Transaction []*Tx                `json:"transaction"`        // 블록내의 트랜잭션
+	RoleInfo    *RoleInfo            `json:"roleinfo"`           // 블록 추가를 위해 구성된 제안자, 검증자 정보
+	Signature   []*ValidateSignature `json:"signature"`          // 블록의 유효성을 확인한 검증자들의 서명
 }
 
 type ValidateSignature struct {
-	Port      string `json:"port"`
-	Address   string `json:"address"`
-	Signature string `json:"signature"`
+	Port      string `json:"port"`      // 검증자의 노트 포트
+	Address   string `json:"address"`   // 검증자의 주소
+	Signature string `json:"signature"` // 검증자가 블록을 서명한 값
 }
 
 type ValidatedInfo struct {
-	ProposalPort  string             `json:"proposalPort"`
-	ProposalBlock *Block             `json:"proposalBlock"`
-	Port          string             `json:"port"`
-	Result        bool               `json:"result"`
-	Signature     *ValidateSignature `json:"signature"`
-}
-
-func PersistBlock(b *Block) {
-	dbStorage.SaveBlock(b.Hash, utils.ToBytes(b)) // interface로 인자를 받은 ToBytes는 뭐든 받을 수 있다 = interface
+	ProposalPort  string             `json:"proposalPort"`  // 제안자의 노드 포트
+	ProposalBlock *Block             `json:"proposalBlock"` // 제안자가 제안한 블록
+	Port          string             `json:"port"`          // 검증자 노드 포트
+	Result        bool               `json:"result"`        // 검증 결과
+	Signature     *ValidateSignature `json:"signature"`     // 검증자 서명 정보
 }
 
 var ErrNotFound = errors.New("block not found")
 
+// 풀노드의 db에 최신 블록을 업데이트
+func PersistBlock(b *Block) {
+	dbStorage.SaveBlock(b.Hash, utils.ToBytes(b))
+}
+
+// bytes 형태의 블록정보를 json으로 복구
 func (b *Block) restore(data []byte) {
 	utils.FromBytes(b, data)
 }
 
-// sign 메서드는 블록에 대해 서명을 저장합니다.
+// 블록 해시에 서명
 func BlockSign(b *Block, port string) *ValidateSignature {
 	sig := &ValidateSignature{
 		Port:      port,
 		Address:   wallet.Wallet(port).Address,
-		Signature: wallet.Sign(b.Hash, wallet.Wallet(port)), // 블록 id에 서명 // b.ID는 Block struct를 해쉬화한 값
+		Signature: wallet.Sign(b.Hash, wallet.Wallet(port)),
 	}
 	return sig
 }
 
-// 블록 해시로 특정 블록을 조회합니다
+// 블록 해시로 특정 블록을 조회
 func FindBlock(hash string) (*Block, error) {
 	blockBytes := dbStorage.FindBlock(hash)
 	if blockBytes == nil {
 		return nil, ErrNotFound
 	}
-	block := &Block{} // 빈 struct 만들고
+	block := &Block{}
 	block.restore(blockBytes)
 	return block, nil
 }
@@ -123,7 +125,7 @@ func createGenesisBlock() *Block {
 	return block
 }
 
-// 블록의 유효성을 검증하는 함수
+// 블록 유효성 검증
 func ValidateBlock(roleInfo *RoleInfo, proposalBlock *Block, createdBlock *Block, port string) *ValidatedInfo {
 	var result = true
 	var sig *ValidateSignature

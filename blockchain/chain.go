@@ -10,16 +10,16 @@ import (
 )
 
 type blockchain struct {
-	NewestHash string `json:"newestHash"`
-	Height     int    `json:"height"`
-	m          sync.Mutex
+	NewestHash string     `json:"newestHash"` // 블록체인 중 최근 블록 해시 값
+	Height     int        `json:"height"`     // 블록체인의 현 블록 높이
+	m          sync.Mutex // data race를 방지하기 위한 라이브러리
 }
 
 type StakingInfo struct {
-	ID        string `json:"id"`
-	Address   string `json:"address"`
-	Port      string `json:"port"`
-	TimeStamp int    `json:"timestamp"`
+	ID        string `json:"id"`        // 스테이킹 트랜잭션의 해시 값
+	Address   string `json:"address"`   // 스테이커 주소
+	Port      string `json:"port"`      // 스테이커 노드 포트
+	TimeStamp int    `json:"timestamp"` // 스테이킹 트랜잭션의 타임스탬프
 }
 
 type storage interface {
@@ -30,43 +30,52 @@ type storage interface {
 	DeleteAllBlocks()
 }
 
-var b *blockchain
-var once sync.Once // sync 패키지
-var dbStorage storage = db.DB{}
+var (
+	stakingQuantity = 100
+	b               *blockchain
+	once            sync.Once // sync 패키지
+	dbStorage       storage   = db.DB{}
+)
 
+// bytes 형태의 블록체인 값 복구
 func (b *blockchain) restore(data []byte) {
 	utils.FromBytes(b, data)
 }
 
+// 풀노드의 db에 현 블록체인 상태 저장
 func persistBlockchain(b *blockchain) {
 	dbStorage.SaveChain(utils.ToBytes(b))
 }
 
+// 블록체인 상태 업데이트
 func (b *blockchain) UpdateBlockchain(block *Block) {
 	b.NewestHash = block.Hash
 	b.Height = block.Height
 	persistBlockchain(b)
 }
 
+// 블록체인에 블록 추가
 func (b *blockchain) AddBlock(port string, roleInfo *RoleInfo) *Block {
 	block := CreateBlock(b.NewestHash, b.Height+1, port, roleInfo, true)
 	b.UpdateBlockchain(block)
 	return block
 }
 
+// 최초 상태의 블록체인에 제네시스 블록 추가 (위 AddBlock과 구분한 이유는 비트코인의 타임스탬프 등 여러가지 조건을 넣고 싶어서)
 func (b *blockchain) AddGenesisBlock() *Block {
 	block := createGenesisBlock()
 	b.UpdateBlockchain(block)
 	return block
 }
 
-func Blocks(b *blockchain) []*Block { // struct를 변화시키지 않으므로, 메서드 형태보다는 함수형태로 선언
+// 전체 블록 탐색 후 반환
+func Blocks(b *blockchain) []*Block {
 	b.m.Lock()
 	defer b.m.Unlock()
 	var blocks []*Block
-	hashCursor := b.NewestHash // hashCursor: 우리가 찾을 target hash
+	hashCursor := b.NewestHash
 	for {
-		block, _ := FindBlock(hashCursor) // prevHash를 찾다보면 제네시스 블록은 무조건 찾을 수 있으므로 err은 무시 // 제네시스에는 prevHash가 없기때문
+		block, _ := FindBlock(hashCursor)
 		blocks = append(blocks, block)
 		if block.PrevHash != "" {
 			hashCursor = block.PrevHash // target hash를 prevHash로 변경함으로써 계속 파고들수있음
@@ -74,10 +83,11 @@ func Blocks(b *blockchain) []*Block { // struct를 변화시키지 않으므로,
 			break
 		}
 	}
-	return blocks // 모든 블록이 담긴 slice를 반환
+	return blocks // 모든 블록이 담긴 slice 반환
 }
 
-func Txs(b *blockchain) []*Tx { // 모든 트랜잭션을 찾아주는 함수
+// 전체 트랜잭션 반환
+func Txs(b *blockchain) []*Tx {
 	var txs []*Tx
 	for _, block := range Blocks(b) {
 		txs = append(txs, block.Transaction...)
@@ -85,7 +95,8 @@ func Txs(b *blockchain) []*Tx { // 모든 트랜잭션을 찾아주는 함수
 	return txs
 }
 
-func FindTx(b *blockchain, targetID string) *Tx { // 특정 트랜잭션 하나를 찾아주는 함수 // 이걸 이용해서 validate 함수 내에서 이전 트잭을 찾아낼 것임
+// 특정 트랜잭션 정보 반환
+func FindTx(b *blockchain, targetID string) *Tx {
 	for _, tx := range Txs(b) {
 		if tx.ID == targetID {
 			return tx
@@ -94,12 +105,12 @@ func FindTx(b *blockchain, targetID string) *Tx { // 특정 트랜잭션 하나�
 	return nil
 }
 
-// input으로 사용되지 않은 output들을 넘겨주는 함수
+// 트랜잭션의 input으로 사용되지 않은 UTXO들을 반환
 func UTxOutsByAddress(address string, b *blockchain) []*UTxOut { // Unspent Tx Output
 	var uTxOuts []*UTxOut
-	creatorTxs := make(map[string]bool) // 사용한 트랜잭션 output -> map 형태
-	for _, block := range Blocks(b) {   // 모든 블럭
-		for _, tx := range block.Transaction { // 블럭의 모든 트랜잭션
+	creatorTxs := make(map[string]bool)
+	for _, block := range Blocks(b) {
+		for _, tx := range block.Transaction {
 			for _, input := range tx.TxIns { // 트랜잭션안의 input을 추적
 				if input.Signature == "COINBASE" {
 					break
@@ -111,12 +122,10 @@ func UTxOutsByAddress(address string, b *blockchain) []*UTxOut { // Unspent Tx O
 			for index, output := range tx.TxOuts {
 				if output.Address == address {
 					if _, ok := creatorTxs[tx.ID]; !ok { // ok는 이 map안에 값의 유무 bool
-						// input으로 사용하지 않은 트랜잭션 output
 						uTxOut := &UTxOut{tx.ID, index, output.Amount, tx.InputData}
 						if !isOnMempool(uTxOut) { // UTXO의 output을 확인해서, mempool에 있는지 확인
 							uTxOuts = append(uTxOuts, uTxOut)
 						}
-						// 결론 : unspent transaction output을 생성할때는, 어떤 input에서라도 참조가 되지 않은 경우
 					}
 				}
 			}
@@ -125,6 +134,7 @@ func UTxOutsByAddress(address string, b *blockchain) []*UTxOut { // Unspent Tx O
 	return uTxOuts
 }
 
+// 특정 주소의 코인 잔액
 func BalanceByAddress(address string, b *blockchain) int {
 	txOuts := UTxOutsByAddress(address, b)
 	var amount int
@@ -134,6 +144,7 @@ func BalanceByAddress(address string, b *blockchain) int {
 	return amount
 }
 
+// 풀노드 재 구동 시 저장된 블록체인 상태 불러오기
 func Blockchain() *blockchain {
 	once.Do(func() {
 		b = &blockchain{
@@ -150,13 +161,15 @@ func Blockchain() *blockchain {
 	return b
 }
 
+// 블록체인 상태 반환
 func Status(b *blockchain, rw http.ResponseWriter) {
 	b.m.Lock()
 	defer b.m.Unlock()
 	utils.HandleErr(json.NewEncoder(rw).Encode(b))
 }
 
-func (b *blockchain) Replace(newBlocks []*Block) { // 기존 블록체인을, 노드간의 브로드캐스팅을 통해 새로 들어온 블록체인으로 교체 (ex. 내 블록의 높이가 상대의 블록높이보다 낮을때)
+// 노드간 브로드캐스팅을 통해, 블록 높이 비교 후 대체
+func (b *blockchain) Replace(newBlocks []*Block) {
 	b.m.Lock()
 	defer b.m.Unlock()
 	b.Height = len(newBlocks)
@@ -168,6 +181,7 @@ func (b *blockchain) Replace(newBlocks []*Block) { // 기존 블록체인을, �
 	}
 }
 
+// 노드간 새로 추가된 블록을 저장
 func (b *blockchain) AddPeerBlock(newBlock *Block) {
 	b.m.Lock()
 	m.m.Lock()
@@ -188,7 +202,7 @@ func (b *blockchain) AddPeerBlock(newBlock *Block) {
 	}
 }
 
-// UTXO 형태로 만들어서 내보내기 UTXO에 TimeStamp 키 넣기
+// 스테이커의 스테이킹과 관련된 UTXO 반환
 func UTxOutsByStakingAddress(stakingAddress string, b *blockchain) ([]*UTxOut, []*Tx, []int) {
 	var uTxOuts []*UTxOut
 	var Txs []*Tx
@@ -206,7 +220,7 @@ func UTxOutsByStakingAddress(stakingAddress string, b *blockchain) ([]*UTxOut, [
 				}
 			}
 			for index, output := range tx.TxOuts {
-				if output.Address == stakingAddress && output.Amount == 100 { // 제대로 스테이킹 했는지 확인
+				if output.Address == stakingAddress && output.Amount == stakingQuantity {
 					if _, ok := creatorTxs[tx.ID]; !ok {
 						uTxOut := &UTxOut{tx.ID, index, output.Amount, tx.InputData}
 						if !isOnMempool(uTxOut) {
@@ -222,6 +236,7 @@ func UTxOutsByStakingAddress(stakingAddress string, b *blockchain) ([]*UTxOut, [
 	return uTxOuts, Txs, indexes
 }
 
+// 스테이커 리스트 반환
 func GetStakingList(Txs []*Tx, b *blockchain) []*StakingInfo {
 	var sInfos []*StakingInfo
 	var stakerAddr string
@@ -235,6 +250,7 @@ func GetStakingList(Txs []*Tx, b *blockchain) []*StakingInfo {
 	return sInfos
 }
 
+// 스테이킹 유무 확인
 func CheckStaking(stakingInfoList []*StakingInfo, targetAddress string) *StakingInfo {
 	var sInfo *StakingInfo
 	for _, info := range stakingInfoList {
