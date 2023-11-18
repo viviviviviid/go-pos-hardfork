@@ -11,6 +11,7 @@ import (
 
 type MessageKind int
 
+// 메세지 식별자
 const (
 	MessageNewestBlock MessageKind = iota
 	MessageAllBlocksRequest
@@ -32,6 +33,7 @@ type Message struct {
 	Payload []byte
 }
 
+// peer에게 보낼 메세지 생성
 func makeMessage(kind MessageKind, payload interface{}) []byte {
 	m := Message{
 		Kind:    kind,
@@ -40,6 +42,7 @@ func makeMessage(kind MessageKind, payload interface{}) []byte {
 	return utils.ToJSON(m)
 }
 
+// 새로 연결된 peer에게 저장된 데이터를 비교하기 위해, 최근 블록 전송
 func sendNewestBlock(p *peer) {
 	fmt.Printf("Sending newest block to %s\n", p.key)
 	block, err := blockchain.FindBlock(blockchain.Blockchain().NewestHash)
@@ -48,56 +51,67 @@ func sendNewestBlock(p *peer) {
 	p.inbox <- m
 }
 
+// 상대 peer가 더 높은 블록 높이를 가지고 있을경우, 대체하기 위해 모든 블록 요청
 func requestAllBlocks(p *peer) {
 	m := makeMessage(MessageAllBlocksRequest, nil)
 	p.inbox <- m
 }
 
-func requestValidateBlock(v *validateRequest, p *peer) {
-	m := makeMessage(MessageValidateRequest, v)
-	p.inbox <- m
-}
-
+// requestAllBlocks의 응답으로 peer에게 모든 블록 전송
 func sendAllBlocks(p *peer) {
 	m := makeMessage(MessageAllBlocksResponse, blockchain.Blocks(blockchain.Blockchain()))
 	p.inbox <- m
 }
 
+// 검증자에게 제안하고자 하는 블록을 보내 검증 요청
+func requestValidateBlock(v *validateRequest, p *peer) {
+	m := makeMessage(MessageValidateRequest, v)
+	p.inbox <- m
+}
+
+// 제안자가 모든 검증과정을 거치고 블록을 추가했을때, peer들에게 새로 추가된 블록을 저장하라고 알림
 func notifyNewBlock(b *blockchain.Block, p *peer) {
 	m := makeMessage(MessageNewBlockNotify, b)
 	p.inbox <- m
 }
 
+// 트랜잭션이 생성되었을때, peer들에게 새로 추가된 트랜잭션을 저장하라고 알림
 func notifyNewTx(tx *blockchain.Tx, p *peer) {
 	m := makeMessage(MessageNewTxNotify, tx)
 	p.inbox <- m
 }
 
+// 새로운 peer와 연결되었을때, 기존 연결되어있던 peer들에게 새로운 peer가 연결되었다고 알림
 func notifyNewPeer(address string, p *peer) {
 	m := makeMessage(MessageNewPeerNotify, address)
 	p.inbox <- m
 }
 
+// 새롭게 뽑힌 블록 제안자에게, 제안자로 선출되었다고 알림
 func notifyNewProposal(roleInfo *blockchain.RoleInfo, p *peer) {
 	m := makeMessage(MessageNewProposalNotify, roleInfo)
 	p.inbox <- m
 }
 
+// 새롭게 뽑힌 검증자에게, 검증자로 선출되었다고 알림
 func notifyNewValidator(p *peer) {
 	m := makeMessage(MessageNewValidatorNotify, nil)
 	p.inbox <- m
 }
 
+// 3000번 포트인 조율자에게 블록 검증 결과를 알림
 func notifyValidatedResult(validatedInfo *blockchain.ValidatedInfo, p *peer) {
 	m := makeMessage(MessageValidateResponse, validatedInfo)
 	p.inbox <- m
 }
 
+// 3000번 포트인 조율자가 블록 검증결과를 종합하고 과반수를 매겨 제안자에게 제안결과를 알림
 func notifyProposalResult(proposalResult *blockchain.ValidatedInfo, p *peer) {
 	m := makeMessage(MessageProposalResponse, proposalResult)
 	p.inbox <- m
 }
 
+// 메세지를 수신할때 어떤 행동을 취해야 하는지 가이드라인
 func handleMsg(m *Message, p *peer) {
 	switch m.Kind {
 	case MessageNewestBlock:

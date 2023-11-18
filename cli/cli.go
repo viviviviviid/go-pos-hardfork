@@ -9,21 +9,22 @@ import (
 	"github.com/viviviviviid/go-coin/rest"
 )
 
+// cli 명령어 기본 가이드 (Ex. go run main.go -mode=rest -port=4000)
 func usage() {
 	fmt.Printf("Welcome to 민석's Blockchain Project\n\n")
 	fmt.Printf("Please use the following flags:\n\n")
 	fmt.Printf("-port:	Set the PORT of the server\n")
-	fmt.Printf("-mode:	Choose between 'html' and 'rest'\n")
-	os.Exit(0) // 프로그램 정지 및 에러 코드 // 0은 문제 없음 // 1부터 에러
-	// 설명보면 defer 이후에 사용해야한다고 나와있음 // defer도 죽이기때문아닐까 // 그래서 runtime 패키지 이용하는거고
+	fmt.Printf("-mode:	Choose between 'auto' and 'rest'\n")
+	os.Exit(0)
 }
 
+// cli 명령어를 감지하여 auto 또는 rest 모드로 실행
 func Start() {
 	if len(os.Args) == 1 {
 		usage()
 	}
-	port := flag.Int("port", 3000, "Set port of the server")
-	mode := flag.String("mode", "rest", "Choose between 'html', 'rest' and 'both' (both mean html and rest)")
+	port := flag.Int("port", 4000, "Set port of the server")
+	mode := flag.String("mode", "rest", "Choose between 'auto' and 'rest'")
 	flag.Parse()
 
 	switch *mode {
@@ -31,13 +32,6 @@ func Start() {
 		rest.Start(*port)
 	case "auto":
 		pos.PoS(*port)
-
-	// case "html":vscode-file://vscode-app/Applications/Visual%20Studio%20Code.app/Contents/Resources/app/out/vs/code/electron-sandbox/workbench/workbench.html
-	// 	explorer.Start(*port)
-	// case "both":
-	// 	go explorer.Start(*port)
-	// 	rest.Start(*port + 1)
-	// 	// fmt.Scanln() // go가 받을때 main 함수가 먼저 종료되지 않게 대기하기 위해서는 fmt.Scanln()를 입력해줘야 한다.
 	default:
 		usage()
 	}

@@ -22,12 +22,13 @@ type peer struct {
 	address string
 	port    string
 	conn    *websocket.Conn
-	inbox   chan []byte // 각각의 peer마다 bytes조각들을 보내는 inbox라는 채널을 줌 // 이제 특정 함수에 국한된 것이 아닌 언제어디서나 보낼 수 있음
+	inbox   chan []byte // 각각의 peer마다 bytes조각들을 보내는 inbox라는 채널을 줌. channel이므로 특정상황에 국한받지 않음
 }
 
+// 현재 연결된 peer들의 리스트 반환
 func AllPeers(p *peers) []string {
-	p.m.Lock()         // mutex로 잠그고
-	defer p.m.Unlock() // 다 끝나면 언락
+	p.m.Lock()
+	defer p.m.Unlock()
 	var keys []string
 	for key := range p.v {
 		keys = append(keys, key)
@@ -35,19 +36,20 @@ func AllPeers(p *peers) []string {
 	return keys
 }
 
+// 연결되어 있던 peer가 예기치 못한 오류로 종료될 시, 우리쪽의 peer 목록에서 삭제
 func (p *peer) close() {
-	Peers.m.Lock()         // mutex를 이용해서 변수를 잠금 -> unlock할때까지 접근 불가
-	defer Peers.m.Unlock() // 함수 다 끝나고 unlock
+	Peers.m.Lock()
+	defer Peers.m.Unlock()
 	p.conn.Close()
 	delete(Peers.v, p.key) // golang map 내용 삭제방법
 }
 
-func (p *peer) read() { // 에러 발생 시 peer 제거
-	defer p.close() // defer: 함수 종료후 실행되는 코드라인
+// peer에게서 온 메세지 후처리
+func (p *peer) read() {
+	defer p.close()
 	for {
 		m := Message{}
-		err := p.conn.ReadJSON(&m) // websocket에서 오는 메세지를 받아서, JSON으로  변환 후, Json으로부터 go로 unmarshal 하게 도와줌
-		// Message의 형식처럼 Kind, Payload로 쪼개져서 저장됨
+		err := p.conn.ReadJSON(&m) // websocket에서 오는 메세지를 받아서, JSON으로  변환 후, Json으로부터 go로 unmarshal 하게 도와줌 (Message의 형식처럼 Kind, Payload로 쪼개져서 저장됨)
 		if err != nil {
 			break
 		}
@@ -55,8 +57,9 @@ func (p *peer) read() { // 에러 발생 시 peer 제거
 	}
 }
 
+// peer들에게 메세지 작성
 func (p *peer) write() {
-	defer p.close() // defer: 함수 종료후 실행되는 코드라인
+	defer p.close()
 	for {
 		m, ok := <-p.inbox // ok: 채널의 상태가 괜찮은지
 		if !ok {
@@ -66,8 +69,9 @@ func (p *peer) write() {
 	}
 }
 
+// peer가 추가될 시, peer 리스트에 추가
 func initPeer(conn *websocket.Conn, address, port string) *peer {
-	Peers.m.Lock()
+	Peers.m.Lock() // Peers를 조회하거나 수정할경우 data race가 발생할 수 있는데, 이를 방지하고자 mutex로 잠금 및 잠금해제
 	defer Peers.m.Unlock()
 	key := fmt.Sprintf("%s:%s", address, port)
 	p := &peer{
@@ -77,7 +81,7 @@ func initPeer(conn *websocket.Conn, address, port string) *peer {
 		key:     key,
 		port:    port,
 	}
-	go p.read() // peer로부터 msg를 읽어오는 go 루틴 // 끊기지 않고, 다른 코드를 block하지 않고
+	go p.read() // peer로부터 msg를 읽어오는 go 루틴 (끊기지 않고, 다른 코드를 block하지 않고)
 	go p.write()
 	Peers.v[key] = p
 	return p
