@@ -1,3 +1,4 @@
+// blockchain 패키지는 블록, 트랜잭션, 체인, 역할자에 대한 함수들을 제공합니다.
 package blockchain
 
 import (
@@ -9,6 +10,7 @@ import (
 	"github.com/viviviviviid/go-coin/wallet"
 )
 
+// 역할 정보에 대한 구조체
 type RoleInfo struct {
 	ProposalAddress         string   `json:"proposalAddress"`         // 제안자의 주소
 	ProposalPort            string   `json:"proposalPort"`            // 제안자의 노드 포트
@@ -18,6 +20,7 @@ type RoleInfo struct {
 	ValidatorSelectedHeight int      `json:"validatorSelectedHeight"` // 검증자가 선정된 블록 높이
 }
 
+// 블록 정보에 대한 구조체
 type Block struct {
 	Hash        string               `json:"hash"`               // 블록의 해시 값
 	PrevHash    string               `json:"prevHash,omitempty"` // 직전 블록의 해시 값
@@ -28,12 +31,14 @@ type Block struct {
 	Signature   []*ValidateSignature `json:"signature"`          // 블록의 유효성을 확인한 검증자들의 서명
 }
 
+// 검증 과정 중 검증자의 서명에 대한 구조체
 type ValidateSignature struct {
 	Port      string `json:"port"`      // 검증자의 노트 포트
 	Address   string `json:"address"`   // 검증자의 주소
 	Signature string `json:"signature"` // 검증자가 블록을 서명한 값
 }
 
+// 검증 정보에 대한 구조체
 type ValidatedInfo struct {
 	ProposalPort  string             `json:"proposalPort"`  // 제안자의 노드 포트
 	ProposalBlock *Block             `json:"proposalBlock"` // 제안자가 제안한 블록
@@ -42,6 +47,7 @@ type ValidatedInfo struct {
 	Signature     *ValidateSignature `json:"signature"`     // 검증자 서명 정보
 }
 
+// 블록을 찾지 못 했을 경우의 에러
 var ErrNotFound = errors.New("block not found")
 
 // 풀노드의 db에 최신 블록을 업데이트

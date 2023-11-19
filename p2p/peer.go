@@ -13,6 +13,7 @@ type peers struct {
 	// 바로 위의 map을 보호하기 위해 mutex가 있는 struct 내부에 넣고 진행
 }
 
+// peer들이 들어갈 map
 var Peers peers = peers{
 	v: make(map[string]*peer),
 }

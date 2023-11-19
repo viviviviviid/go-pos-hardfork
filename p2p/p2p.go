@@ -1,3 +1,4 @@
+// p2p 패키지는 노드간의 연결, 메시지 전송, 메시지 핸들링 등의 함수를 제공합니다.
 package p2p
 
 import (
@@ -11,6 +12,7 @@ import (
 
 var upgrader = websocket.Upgrader{}
 
+// PoS의 조율자 노드 포트
 const StakingPort = "3000"
 
 type validateRequest struct {

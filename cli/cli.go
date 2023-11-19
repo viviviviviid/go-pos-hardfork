@@ -1,3 +1,4 @@
+// cli 패키지는 명령행 인터페이스 (CLI)와 관련된 함수를 제공합니다.
 package cli
 
 import (

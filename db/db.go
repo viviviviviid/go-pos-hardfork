@@ -1,3 +1,4 @@
+// db 패키지는 db 조회, 수정 등과 같은 함수를 제공합니다.
 package db
 
 import (

@@ -12,7 +12,7 @@ http://localhost:4006/wallet
 ###
 POST http://localhost:4006/blocks
 ###
-POST http://localhost:4002/transactions
+POST http://localhost:4002/transaction
 
 {
     "to":"ee2fe4bac2596c66f8ee7df93f47c38864c83fac7a69294ac587ad80589d68ab0a77ea975ae60461cb01cf56b8907515eb27cc8575cc384a23398c6a0226ac0d",

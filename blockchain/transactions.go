@@ -10,12 +10,12 @@ import (
 )
 
 const (
-	proposalReward  int = 50 // 제안자 보상
-	validatorReward int = 10 // 검증자 보상
-	MonthToSec      int = 2592000
-	WeekToSec       int = 604800
-	DayToSec        int = 86400
-	SlotSec         int = 12
+	proposalReward  int = 50      // 제안자 보상
+	validatorReward int = 10      // 검증자 보상
+	MonthToSec      int = 2592000 // 1달의 초단위 변환
+	WeekToSec       int = 604800  // 1주의 초단위 변환
+	DayToSec        int = 86400   // 1일의 초단위 변환
+	SlotSec         int = 12      // 슬롯의 초단위 변환
 )
 
 type mempool struct {
@@ -36,6 +36,7 @@ func Mempool() *mempool {
 	return m
 }
 
+// 트랜잭션에 대한 구조체
 type Tx struct {
 	ID        string   `json:"id"`        // 트랜잭션의 해시 값
 	Timestamp int      `json:"timestamp"` // 트랜잭션의 타임스탬프
@@ -44,17 +45,20 @@ type Tx struct {
 	InputData string   `json:"inputData"` // 트랜잭션에 추가적으로 기입한 문자열
 }
 
+// 트랜잭션 Input에 대한 구조체
 type TxIn struct {
 	TxID      string `json:"txId"`
 	Index     int    `json:"index"`
 	Signature string `json:"signature"`
 }
 
+// 트랜잭션 Output에 대한 구조체
 type TxOut struct {
 	Address string `json:"address"`
 	Amount  int    `json:"amount"`
 }
 
+// UTXO에 대한 구조체 (사용하지 않은 TxOut)
 type UTxOut struct {
 	TxID      string
 	Index     int

@@ -1,3 +1,4 @@
+// rest 패키지는 애플리케이션에서 사용되는 REST API와 관련된 기능을 제공합니다.
 package rest
 
 import (
@@ -40,12 +41,7 @@ const (
 	unstakingMessage = "unstaked"
 )
 
-type url string // string 형태를 가진 URL이라는 type // type을 만들 수 있음
-
-func (u url) MarshalText() ([]byte, error) { // MarshalText: Field가 json string으로써 어떻게 보여질지 결정하는 Method
-	url := fmt.Sprintf("http://localhost%s%s", port, u)
-	return []byte(url), nil
-} // URL type에 대한 method가 된 것
+type url string
 
 type urlDescription struct {
 	URL         url    `json:"url"` // json형태로 웹에 출력된다면, 별명상태로 출력 -> 소문자로 출력시키는 방법
@@ -84,10 +80,7 @@ type addPeerPayload struct {
 	Address, Port string
 }
 
-func (u urlDescription) String() string { // stringer interface는 이렇게 구현해놓은순간부터, URLDescription을 직접 print할경우 return의 내용을 출력해준다.
-	return "Hello I'm the URL description" // 어떻게 변수를 넣어야할지 알려주는 가이드라인으로 작성
-}
-
+// 노드 실행 후, localhost:4000에 들어가면 나오는 REST API 가이드 (설명을 읽고 원하는 기능의 URL을 클릭한다)
 func documentation(rw http.ResponseWriter, r *http.Request) {
 	data := []urlDescription{
 		{
@@ -131,7 +124,7 @@ func documentation(rw http.ResponseWriter, r *http.Request) {
 			Description: "See All Mempool",
 		},
 		{
-			URL:         url("/transaction"),
+			URL:         url("/randomTransaction"),
 			Method:      "POST",
 			Description: "Add a Random Transaction to the Mempool",
 		},
@@ -139,21 +132,38 @@ func documentation(rw http.ResponseWriter, r *http.Request) {
 	utils.HandleErr(json.NewEncoder(rw).Encode(data))
 }
 
+// 클라이언트에게 json 응답 (라우터들이 사용할 미들웨어, 해당 라우터의 핸들러 함수가 실행되기 전에 실행)
+func jsonContentTypeMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		rw.Header().Add("Content-Type", "application/json") // json으로 인지하도록 설정
+		next.ServeHTTP(rw, r)
+	})
+}
+
+// 요청된 HTTP url을 출력 (라우터들이 사용할 미들웨어, 해당 라우터의 핸들러 함수가 실행되기 전에 실행)
+func loggerMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		fmt.Println(r.URL)
+		next.ServeHTTP(rw, r)
+	})
+}
+
+// (/blocks) GET: 전체 블록 조회, POST: 새로운 블록 추가
 func blocks(rw http.ResponseWriter, r *http.Request) {
 	switch r.Method {
-	case "GET": // http://localhost:4000/blocks 에 들어갔을때
+	case "GET":
 		utils.HandleErr(json.NewEncoder(rw).Encode(blockchain.Blocks(blockchain.Blockchain())))
-		// Encode가 Marshall의 일을 해주고, 결과를 ResponseWrite에 작성
 	case "POST":
 		newBlock := blockchain.Blockchain().AddBlock(port[1:], nil)
 		p2p.BroadcastNewBlock(newBlock)
-		rw.WriteHeader(http.StatusCreated) // StatusCreated : 201 (status code)
+		rw.WriteHeader(http.StatusCreated)
 	}
 }
 
+// (/blocks/{hash:[a-f0-9]+}) 특정 블록 조회
 func block(rw http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)  // r인 request에서 Mux가 변수를 추출
-	hash := vars["hash"] // 윗줄에서 추출한 변수 map에서 id를 추출
+	vars := mux.Vars(r)
+	hash := vars["hash"]
 	block, err := blockchain.FindBlock(hash)
 	// error handling
 	encoder := json.NewEncoder(rw)
@@ -164,24 +174,12 @@ func block(rw http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// (/status) 체인의 현 상태 확인
 func status(rw http.ResponseWriter, r *http.Request) {
 	blockchain.Status(blockchain.Blockchain(), rw)
 }
 
-func jsonContentTypeMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-		rw.Header().Add("Content-Type", "application/json") // json으로 인지하도록 설정
-		next.ServeHTTP(rw, r)
-	})
-}
-
-func loggerMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-		fmt.Println(r.URL)
-		next.ServeHTTP(rw, r)
-	})
-}
-
+// (/balances/{address}) 특정 지갑주소의 잔액을 확인. true가 포함되지 않았다면 잔액에 해당되는 UTXO가 분리되어서 반환
 func balance(rw http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	address := vars["address"]
@@ -195,16 +193,19 @@ func balance(rw http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// (/balance) 요청한 노드의 지갑 잔액을 확인
 func myBalance(rw http.ResponseWriter, r *http.Request) {
 	amount := blockchain.BalanceByAddress(wallet.Wallet(port[1:]).Address, blockchain.Blockchain())
 	json.NewEncoder(rw).Encode(BalanceResponse{wallet.Wallet(port[1:]).Address, amount})
 }
 
+// (/mempool) 멤풀에 속해있는 트랜잭션을 확인
 func mempool(rw http.ResponseWriter, r *http.Request) {
 	utils.HandleErr(json.NewEncoder(rw).Encode(blockchain.Mempool().Txs))
 }
 
-func transactions(rw http.ResponseWriter, r *http.Request) {
+// (/transaction) 트랜잭션 정보를 받아 구성 완료 후 멤풀에 추가
+func transaction(rw http.ResponseWriter, r *http.Request) {
 	var payload addTxPayload
 	utils.HandleErr(json.NewDecoder(r.Body).Decode(&payload))
 	tx, err := blockchain.Mempool().AddTx(payload.To, payload.Amount, payload.InputData, port[1:])
@@ -217,6 +218,7 @@ func transactions(rw http.ResponseWriter, r *http.Request) {
 	rw.WriteHeader(http.StatusCreated)
 }
 
+// (/randomTransaction) 랜덤한 트랜잭션을 멤풀에 추가. 테스트용
 func randomTransaction(rw http.ResponseWriter, r *http.Request) {
 	var randomQuantity = rand.Intn(50)
 	var randomTo = utils.Hash(randomQuantity)
@@ -236,11 +238,13 @@ func randomTransaction(rw http.ResponseWriter, r *http.Request) {
 	)
 }
 
+// (/wallet) 요청한 노드의 지갑 정보 확인
 func myWallet(rw http.ResponseWriter, r *http.Request) {
 	address := wallet.Wallet(port[1:]).Address
 	json.NewEncoder(rw).Encode(myWalletResponse{Port: port[1:], Address: address})
 }
 
+// (/peer) GET: 연결된 peer 노드 리스트 출력, POST: 새로운 노드와 peer 맺기
 func peers(rw http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "POST":
@@ -253,6 +257,7 @@ func peers(rw http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// (/stake) PoS에 참여하기 위해, 스테이킹 트랜잭션을 멤풀에 추가 - (수량: 100, 기간: 1달)
 func stake(rw http.ResponseWriter, r *http.Request) {
 	tx, err := blockchain.Mempool().AddTx(stakingAddress, stakingAmount, port[1:], port[1:])
 	if err != nil {
@@ -265,6 +270,7 @@ func stake(rw http.ResponseWriter, r *http.Request) {
 	utils.HandleErr(json.NewEncoder(rw).Encode(ResStakeDone))
 }
 
+// (/unstake) 언스테이킹 트랜잭션을 멤풀에 추가 (락업 기한이 지났다면, 스테이킹 메인노드에게서 인출 요청)
 func unstake(rw http.ResponseWriter, r *http.Request) {
 	myAddress := wallet.Wallet(port[1:]).Address
 	_, stakingWalletTx, indexes := blockchain.UTxOutsByStakingAddress(stakingAddress, blockchain.Blockchain())
@@ -294,23 +300,14 @@ func unstake(rw http.ResponseWriter, r *http.Request) {
 	utils.HandleErr(json.NewEncoder(rw).Encode(ResUnstakeDone))
 }
 
+// (/staking) 현재 스테이킹 중인 노드와 지갑정보를 조회
 func checkStaking(rw http.ResponseWriter, r *http.Request) {
 	_, stakingWalletTx, _ := blockchain.UTxOutsByStakingAddress(stakingAddress, blockchain.Blockchain())
 	stakingInfoList := blockchain.GetStakingList(stakingWalletTx, blockchain.Blockchain())
 	utils.HandleErr(json.NewEncoder(rw).Encode(stakingInfoList))
 }
 
-func proposal(rw http.ResponseWriter, r *http.Request) {
-	roleInfo, res := blockchain.Blockchain().Selector()
-	if res != "" {
-		rw.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(rw).Encode(res)
-		return
-	}
-	p2p.PointingProposal(roleInfo)
-	rw.WriteHeader(http.StatusCreated) // StatusCreated : 201 (status code)
-}
-
+// 라우터를 초기화하고 HTTP 서버를 시작
 func Start(aPort int) {
 	port = fmt.Sprintf(":%d", aPort)
 	router := mux.NewRouter()                               // Gorilla Dependecy
@@ -323,14 +320,13 @@ func Start(aPort int) {
 	router.HandleFunc("/balances/{address}", balance).Methods("GET")
 	router.HandleFunc("/mempool", mempool).Methods("GET")
 	router.HandleFunc("/wallet", myWallet).Methods("GET")
-	router.HandleFunc("/transaction", randomTransaction).Methods("GET")
-	router.HandleFunc("/transactions", transactions).Methods("POST")
+	router.HandleFunc("/randomTransaction", randomTransaction).Methods("GET")
+	router.HandleFunc("/transaction", transaction).Methods("POST")
 	router.HandleFunc("/ws", p2p.Upgrade).Methods("GET")
 	router.HandleFunc("/peer", peers).Methods("GET", "POST")
 	router.HandleFunc("/stake", stake).Methods("POST")
 	router.HandleFunc("/unstake", unstake).Methods("POST")
 	router.HandleFunc("/staking", checkStaking).Methods("GET")
-	router.HandleFunc("/proposal", proposal).Methods("POST")
 	// Gorilla Mux 공식문서에 나와있는대로
 	fmt.Printf("Listening on http://localhost%s\n", port)
 	log.Fatal(http.ListenAndServe(port, router))

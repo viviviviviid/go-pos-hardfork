@@ -9,6 +9,7 @@ import (
 	"github.com/viviviviviid/go-coin/utils"
 )
 
+// 메세지 번호
 type MessageKind int
 
 // 메세지 식별자
@@ -28,6 +29,7 @@ const (
 
 var validatedResults []*blockchain.ValidatedInfo
 
+// 메세지 구조체
 type Message struct {
 	Kind    MessageKind
 	Payload []byte
