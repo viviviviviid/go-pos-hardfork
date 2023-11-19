@@ -15,7 +15,7 @@ var (
 
 const (
 	slotTime      = 12
-	Epoch         = 3 // 이더리움은 32
+	Epoch         = 3 // 이더리움은 32개의 슬롯
 	genesisHeight = 1
 )
 

@@ -9,12 +9,14 @@ import (
 	"github.com/viviviviviid/go-coin/utils"
 )
 
+// 블록체인 정보에 대한 구조체
 type blockchain struct {
 	NewestHash string     `json:"newestHash"` // 블록체인 중 최근 블록 해시 값
 	Height     int        `json:"height"`     // 블록체인의 현 블록 높이
 	m          sync.Mutex // data race를 방지하기 위한 라이브러리
 }
 
+// 스테이킹 정보에 대한 구조체
 type StakingInfo struct {
 	ID        string `json:"id"`        // 스테이킹 트랜잭션의 해시 값
 	Address   string `json:"address"`   // 스테이커 주소

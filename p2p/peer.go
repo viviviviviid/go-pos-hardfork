@@ -18,6 +18,7 @@ var Peers peers = peers{
 	v: make(map[string]*peer),
 }
 
+// peer에 대한 구조체
 type peer struct {
 	key     string
 	address string
