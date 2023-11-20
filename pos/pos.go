@@ -14,7 +14,7 @@ const (
 	slotTime        = 12 // 블록 하나가 추가되는 이상적인 시간 (이더리움 기준)
 )
 
-// PoS의 기둥이 되는 함수. 슬롯과 에포크마다 스테이킹 리스트를 토대로 검증자와 제안자를 선정 후, 제안 성공 여부를 따지는 로직을 반복한다.
+// PoS의 기둥이 되는 함수. 슬롯과 에포크마다 스테이킹 리스트를 토대로 검증자와 제안자를 선출 후, 제안 성공 여부를 따지는 로직을 반복한다.
 func PoS(aPort int) {
 	go rest.Start(aPort)
 	time.Sleep(nodeSettingTime * time.Second)

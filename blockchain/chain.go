@@ -101,7 +101,7 @@ func FindTx(b *blockchain, targetID string) *Tx {
 }
 
 // 트랜잭션의 input으로 사용되지 않은 UTXO들을 반환
-func UTxOutsByAddress(address string, b *blockchain) []*UTxOut { // Unspent Tx Output
+func UTxOutsByAddress(address string, b *blockchain) []*UTxOut {
 	var uTxOuts []*UTxOut
 	creatorTxs := make(map[string]bool)
 	for _, block := range Blocks(b) {

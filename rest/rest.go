@@ -37,7 +37,7 @@ var (
 const (
 	stakingAddress   = "c8546a75af42fd63669afa3d2e72b3567790aa8f2a54da1abb94ec03239c76638f45ada90e6e2a5af42efff001a66d90106fa898ae55d3168b11d9e120a0763d"
 	stakingAmount    = 100
-	stakingNodePort  = "3000"
+	stakingNodePort  = "3000" // PoS 스테이킹 풀 제공자 노드
 	unstakingMessage = "unstaked"
 )
 
@@ -270,7 +270,7 @@ func stake(rw http.ResponseWriter, r *http.Request) {
 	utils.HandleErr(json.NewEncoder(rw).Encode(ResStakeDone))
 }
 
-// (/unstake) 언스테이킹 트랜잭션을 멤풀에 추가 (락업 기한이 지났다면, 스테이킹 메인노드에게서 인출 요청)
+// (/unstake) 언스테이킹 트랜잭션을 멤풀에 추가 (락업 기한이 지났다면, 스테이킹 노드에게서 인출 요청)
 func unstake(rw http.ResponseWriter, r *http.Request) {
 	myAddress := wallet.Wallet(port[1:]).Address
 	_, stakingWalletTx, indexes := blockchain.UTxOutsByStakingAddress(stakingAddress, blockchain.Blockchain())

@@ -14,10 +14,10 @@ import (
 type RoleInfo struct {
 	ProposerAddress         string   `json:"proposerAddress"`         // 제안자의 주소
 	ProposerPort            string   `json:"proposerPort"`            // 제안자의 노드 포트
-	ProposerSelectedHeight  int      `json:"proposerSelectedHeight"`  // 제안자가 선정된 블록 높이
+	ProposerSelectedHeight  int      `json:"proposerSelectedHeight"`  // 제안자가 선출된 블록 높이
 	ValidatorAddress        []string `json:"validatorAddress"`        // 검증자 주소
 	ValidatorPort           []string `json:"validatorPort"`           // 검증자의 노드 포트
-	ValidatorSelectedHeight int      `json:"validatorSelectedHeight"` // 검증자가 선정된 블록 높이
+	ValidatorSelectedHeight int      `json:"validatorSelectedHeight"` // 검증자가 선출된 블록 높이
 }
 
 // 블록 정보에 대한 구조체

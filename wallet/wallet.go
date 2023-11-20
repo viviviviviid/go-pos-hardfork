@@ -17,7 +17,8 @@ import (
 
 // 지갑 파일의 기본 이름
 const (
-	fileName string = ".wallet"
+	fileName        string = ".wallet"
+	stakingNodePort string = "3000" // PoS 스테이킹 풀 제공자 노드
 )
 
 // 파일 입출력 관련 메서드를 정의하는 인터페이스
@@ -143,7 +144,7 @@ func Verify(signature, payload, address string) bool {
 // 대리 서명을 위한 지갑 정보를 생성
 func DelegateWallet() *wallet {
 	wallet := &wallet{}
-	path := "./wallets/" + "3000" + fileName
+	path := "./wallets/" + stakingNodePort + fileName
 	wallet.privateKey = restoreKey(path)
 	wallet.Address = aFromK(wallet.privateKey)
 	return wallet

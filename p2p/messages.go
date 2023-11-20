@@ -101,19 +101,19 @@ func notifyNewValidator(p *peer) {
 	p.inbox <- m
 }
 
-// 3000번 포트인 조율자에게 블록 검증 결과를 알림
+// PoS 스테이킹 풀 제공자 노드에게 블록 검증 결과를 알림
 func notifyValidatedResult(validatedInfo *blockchain.ValidatedInfo, p *peer) {
 	m := makeMessage(MessageValidateResponse, validatedInfo)
 	p.inbox <- m
 }
 
-// 3000번 포트인 조율자가 블록 검증결과를 종합하고 과반수를 매겨 제안자에게 제안결과를 알림
+// PoS 스테이킹 풀 제공자 노드가 블록 검증결과를 종합하고 과반수를 매겨 제안자에게 제안결과를 알림
 func notifyProposalResult(proposalResult *blockchain.ValidatedInfo, p *peer) {
 	m := makeMessage(MessageProposalResponse, proposalResult)
 	p.inbox <- m
 }
 
-// 메세지를 수신할때 어떤 행동을 취해야 하는지 가이드라인
+// 메세지를 수신과 관련된 핸들러
 func handleMsg(m *Message, p *peer) {
 	switch m.Kind {
 	case MessageNewestBlock:

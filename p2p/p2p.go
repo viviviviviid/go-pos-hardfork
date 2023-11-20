@@ -12,7 +12,7 @@ import (
 
 var upgrader = websocket.Upgrader{}
 
-// PoS의 조율자 노드 포트
+// PoS 스테이킹 풀 제공자 노드 포트
 const StakingPort = "3000"
 
 type validateRequest struct {
@@ -83,7 +83,7 @@ func SendProposalBlock(r *blockchain.RoleInfo, b *blockchain.Block) {
 	}
 }
 
-// PoS 메인포트인 3000번 노드에게 검증결과 전달
+// PoS 스테이킹 풀 제공자 노드에게 검증결과 전달
 func SendValidatedResult(validatedInfo *blockchain.ValidatedInfo) {
 	for _, p := range Peers.v {
 		if p.port == "3000" { // staking port
@@ -92,7 +92,7 @@ func SendValidatedResult(validatedInfo *blockchain.ValidatedInfo) {
 	}
 }
 
-// PoS 메인포트인 3000번 노드가 제안자에게 제안 결과 전달
+// PoS 스테이킹 풀 제공자 노드가 제안자에게 제안 결과 전달
 func SendProposalResult(proposalResult *blockchain.ValidatedInfo) {
 	for _, p := range Peers.v {
 		if p.port == proposalResult.ProposerPort { // staking port
