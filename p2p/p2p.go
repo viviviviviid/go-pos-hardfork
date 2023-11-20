@@ -48,10 +48,10 @@ func AddPeer(address, port, openPort string, broadcast bool) { // 서로간에 c
 }
 
 // 새로 선출된 제안자 지목
-func PointingProposal(r *blockchain.RoleInfo) {
+func PointingProposer(r *blockchain.RoleInfo) {
 	for _, p := range Peers.v {
-		if r.ProposalPort == p.port {
-			notifyNewProposal(r, p)
+		if r.ProposerPort == p.port {
+			notifyNewProposer(r, p)
 		}
 	}
 }
@@ -95,7 +95,7 @@ func SendValidatedResult(validatedInfo *blockchain.ValidatedInfo) {
 // PoS 메인포트인 3000번 노드가 제안자에게 제안 결과 전달
 func SendProposalResult(proposalResult *blockchain.ValidatedInfo) {
 	for _, p := range Peers.v {
-		if p.port == proposalResult.ProposalPort { // staking port
+		if p.port == proposalResult.ProposerPort { // staking port
 			notifyProposalResult(proposalResult, p)
 		}
 	}

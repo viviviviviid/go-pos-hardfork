@@ -124,7 +124,7 @@ func makeCoinbaseTx(roleInfo *RoleInfo) *Tx {
 		{"", -1, "COINBASE"}, // 소유주는 채굴자
 	}
 	txOuts := []*TxOut{
-		{roleInfo.ProposalAddress, proposalReward},
+		{roleInfo.ProposerAddress, proposalReward},
 		{roleInfo.ValidatorAddress[0], validatorReward},
 		{roleInfo.ValidatorAddress[1], validatorReward},
 		{roleInfo.ValidatorAddress[2], validatorReward},

@@ -5,9 +5,9 @@ import "github.com/viviviviviid/go-coin/utils"
 // 제네시스 블록 구성 함수
 func createGenesisBlock() *Block {
 	roleInfo := &RoleInfo{
-		ProposalAddress:         "Genesis",
-		ProposalPort:            "3000",
-		ProposalSelectedHeight:  1,
+		ProposerAddress:         "Genesis",
+		ProposerPort:            "3000",
+		ProposerSelectedHeight:  1,
 		ValidatorAddress:        []string{"Genesis", "Genesis", "Genesis"},
 		ValidatorPort:           []string{"3000", "3000", "3000"},
 		ValidatorSelectedHeight: 1,

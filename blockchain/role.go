@@ -42,7 +42,7 @@ func (r *RoleInfo) selectValidator(b *blockchain, stakingList []*StakingInfo) {
 }
 
 // 제안자 선정
-func (r *RoleInfo) selectProposal(b *blockchain, stakingList []*StakingInfo) {
+func (r *RoleInfo) selectProposer(b *blockchain, stakingList []*StakingInfo) {
 	var selected *StakingInfo
 	for {
 		check := 0
@@ -59,9 +59,9 @@ func (r *RoleInfo) selectProposal(b *blockchain, stakingList []*StakingInfo) {
 			break
 		}
 	}
-	r.ProposalAddress = selected.Address
-	r.ProposalPort = selected.Port
-	r.ProposalSelectedHeight = b.Height + 1 // b.Height는 현재 높이이고, 이제 추가할 블록의 높이는 +1로 해야함
+	r.ProposerAddress = selected.Address
+	r.ProposerPort = selected.Port
+	r.ProposerSelectedHeight = b.Height + 1 // b.Height는 현재 높이이고, 이제 추가할 블록의 높이는 +1로 해야함
 }
 
 // 지정된 슬롯과 에포크에 따른 검증자와 제안자 선정
@@ -79,13 +79,13 @@ func (b *blockchain) Selector() (*RoleInfo, string) {
 
 	if b.Height%Epoch == 0 {
 		r.selectValidator(b, stakingInfoList)
-		r.selectProposal(b, stakingInfoList)
+		r.selectProposer(b, stakingInfoList)
 	} else {
 		block, _ := FindBlock(b.NewestHash)
 		r.ValidatorSelectedHeight = block.RoleInfo.ValidatorSelectedHeight
 		r.ValidatorAddress = block.RoleInfo.ValidatorAddress
 		r.ValidatorPort = block.RoleInfo.ValidatorPort
-		r.selectProposal(b, stakingInfoList)
+		r.selectProposer(b, stakingInfoList)
 	}
 
 	fmt.Printf("Seleted Roles for the next block:\n%s\n", utils.ToString(r))
@@ -110,9 +110,9 @@ func CalculateMajority(v []*ValidatedInfo) bool {
 
 // 검증 중 RoleInfo 내용 비교
 func compareRoleInfo(r1, r2 *RoleInfo) bool {
-	return r1.ProposalAddress == r2.ProposalAddress &&
-		r1.ProposalPort == r2.ProposalPort &&
-		r1.ProposalSelectedHeight == r2.ProposalSelectedHeight &&
+	return r1.ProposerAddress == r2.ProposerAddress &&
+		r1.ProposerPort == r2.ProposerPort &&
+		r1.ProposerSelectedHeight == r2.ProposerSelectedHeight &&
 		utils.CompareStringSlices(r1.ValidatorAddress, r2.ValidatorAddress) &&
 		utils.CompareStringSlices(r1.ValidatorPort, r2.ValidatorPort) &&
 		r1.ValidatorSelectedHeight == r2.ValidatorSelectedHeight

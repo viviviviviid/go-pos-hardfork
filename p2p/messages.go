@@ -20,7 +20,7 @@ const (
 	MessageNewBlockNotify
 	MessageNewTxNotify
 	MessageNewPeerNotify
-	MessageNewProposalNotify
+	MessageNewProposerNotify
 	MessageNewValidatorNotify
 	MessageValidateRequest
 	MessageValidateResponse
@@ -90,8 +90,8 @@ func notifyNewPeer(address string, p *peer) {
 }
 
 // 새롭게 뽑힌 블록 제안자에게, 제안자로 선출되었다고 알림
-func notifyNewProposal(roleInfo *blockchain.RoleInfo, p *peer) {
-	m := makeMessage(MessageNewProposalNotify, roleInfo)
+func notifyNewProposer(roleInfo *blockchain.RoleInfo, p *peer) {
+	m := makeMessage(MessageNewProposerNotify, roleInfo)
 	p.inbox <- m
 }
 
@@ -156,11 +156,11 @@ func handleMsg(m *Message, p *peer) {
 		parts := strings.Split(payload, ":")
 		AddPeer(parts[0], parts[1], parts[2], false)
 
-	case MessageNewProposalNotify:
+	case MessageNewProposerNotify:
 		var payload *blockchain.RoleInfo
 		utils.HandleErr(json.Unmarshal(m.Payload, &payload))
-		fmt.Printf("At %d height, this %s node has been pointed as a Proposal\n", blockchain.Blockchain().Height+1, payload.ProposalPort)
-		newBlock := blockchain.CreateBlock(blockchain.Blockchain().NewestHash, blockchain.Blockchain().Height+1, payload.ProposalPort, payload, false)
+		fmt.Printf("At %d height, this %s node has been pointed as a Proposer\n", blockchain.Blockchain().Height+1, payload.ProposerPort)
+		newBlock := blockchain.CreateBlock(blockchain.Blockchain().NewestHash, blockchain.Blockchain().Height+1, payload.ProposerPort, payload, false)
 		fmt.Println("Just created new block :", utils.ToString(newBlock))
 		SendProposalBlock(payload, newBlock)
 
@@ -170,7 +170,7 @@ func handleMsg(m *Message, p *peer) {
 	case MessageValidateRequest:
 		var payload *validateRequest
 		utils.HandleErr(json.Unmarshal(m.Payload, &payload))
-		newBlock := blockchain.CreateBlock(blockchain.Blockchain().NewestHash, blockchain.Blockchain().Height+1, payload.RoleInfo.ProposalPort, payload.RoleInfo, false)
+		newBlock := blockchain.CreateBlock(blockchain.Blockchain().NewestHash, blockchain.Blockchain().Height+1, payload.RoleInfo.ProposerPort, payload.RoleInfo, false)
 		fmt.Println("comparisonBlock: ", utils.ToString(newBlock))
 		result := blockchain.ValidateBlock(payload.RoleInfo, payload.Block, newBlock, payload.Port)
 		fmt.Println("validate result: ", utils.ToString(result.Result))
@@ -189,7 +189,7 @@ func handleMsg(m *Message, p *peer) {
 			fmt.Println("\nAll Validator's message is arrived")
 			result := blockchain.CalculateMajority(validatedResults)
 			proposalResult := &blockchain.ValidatedInfo{
-				ProposalPort:  payload.ProposalPort,
+				ProposerPort:  payload.ProposerPort,
 				ProposalBlock: payload.ProposalBlock,
 				Port:          StakingPort,
 				Result:        result,

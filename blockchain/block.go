@@ -12,9 +12,9 @@ import (
 
 // 역할 정보에 대한 구조체
 type RoleInfo struct {
-	ProposalAddress         string   `json:"proposalAddress"`         // 제안자의 주소
-	ProposalPort            string   `json:"proposalPort"`            // 제안자의 노드 포트
-	ProposalSelectedHeight  int      `json:"proposalSelectedHeight"`  // 제안자가 선정된 블록 높이
+	ProposerAddress         string   `json:"proposerAddress"`         // 제안자의 주소
+	ProposerPort            string   `json:"proposerPort"`            // 제안자의 노드 포트
+	ProposerSelectedHeight  int      `json:"proposerSelectedHeight"`  // 제안자가 선정된 블록 높이
 	ValidatorAddress        []string `json:"validatorAddress"`        // 검증자 주소
 	ValidatorPort           []string `json:"validatorPort"`           // 검증자의 노드 포트
 	ValidatorSelectedHeight int      `json:"validatorSelectedHeight"` // 검증자가 선정된 블록 높이
@@ -40,8 +40,8 @@ type ValidateSignature struct {
 
 // 검증 정보에 대한 구조체
 type ValidatedInfo struct {
-	ProposalPort  string             `json:"proposalPort"`  // 제안자의 노드 포트
-	ProposalBlock *Block             `json:"proposalBlock"` // 제안자가 제안한 블록
+	ProposerPort  string             `json:"proposerPort"`  // 제안자의 노드 포트
+	ProposalBlock *Block             `json:"proposerBlock"` // 제안자가 제안한 블록
 	Port          string             `json:"port"`          // 검증자 노드 포트
 	Result        bool               `json:"result"`        // 검증 결과
 	Signature     *ValidateSignature `json:"signature"`     // 검증자 서명 정보
@@ -92,9 +92,9 @@ func CreateBlock(prevHash string, height int, port string, roleInfo *RoleInfo, u
 	block.Timestamp = int(time.Now().Unix())
 	if roleInfo == nil {
 		roleInfo = &RoleInfo{
-			ProposalAddress:         "Staking Address",
-			ProposalPort:            "Staking Port",
-			ProposalSelectedHeight:  b.Height,
+			ProposerAddress:         "Staking Address",
+			ProposerPort:            "Staking Port",
+			ProposerSelectedHeight:  b.Height,
 			ValidatorAddress:        []string{"Staking Address", "Staking Address", "Staking Address"},
 			ValidatorPort:           []string{"Staking Port", "Staking Port", "Staking Port"},
 			ValidatorSelectedHeight: b.Height,
@@ -133,7 +133,7 @@ func ValidateBlock(roleInfo *RoleInfo, proposalBlock *Block, createdBlock *Block
 		sig = BlockSign(proposalBlock, port)
 	}
 	v := &ValidatedInfo{
-		ProposalPort:  roleInfo.ProposalPort,
+		ProposerPort:  roleInfo.ProposerPort,
 		ProposalBlock: proposalBlock,
 		Port:          port,
 		Result:        result,

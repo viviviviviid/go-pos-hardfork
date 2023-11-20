@@ -24,7 +24,7 @@ func PoS(aPort int) {
 		if err != "" {
 			continue
 		}
-		p2p.PointingProposal(roleInfo)
+		p2p.PointingProposer(roleInfo)
 		p2p.PointingValidator(roleInfo)
 		time.Sleep(slotTime * time.Second)
 		blockchain.Blockchain().CheckProposalSuccess(lastHeight)
