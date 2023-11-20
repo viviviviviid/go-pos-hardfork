@@ -34,11 +34,7 @@ var (
 	}
 )
 
-const (
-	stakingAmount    = 100    // PoS 스테이킹 필수 수량
-	stakingNodePort  = "3000" // PoS 스테이킹 풀 제공자 노드
-	unstakingMessage = "unstaked"
-)
+const unstakingMessage = "unstaked"
 
 type url string
 
@@ -258,7 +254,7 @@ func peers(rw http.ResponseWriter, r *http.Request) {
 
 // (/stake) PoS에 참여하기 위해, 스테이킹 트랜잭션을 멤풀에 추가 - (수량: 100, 기간: 1달)
 func stake(rw http.ResponseWriter, r *http.Request) {
-	tx, err := blockchain.Mempool().AddTx(utils.StakingAddress, stakingAmount, port[1:], port[1:])
+	tx, err := blockchain.Mempool().AddTx(utils.StakingAddress, utils.StakingQuantity, port[1:], port[1:])
 	if err != nil {
 		rw.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(rw).Encode(errorResponse{err.Error()})
@@ -288,7 +284,7 @@ func unstake(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tx, err := blockchain.Mempool().AddTxFromStakingAddress(utils.StakingAddress, myAddress, "unstaking ordered", stakingNodePort, stakingAmount, myStakingInfo, indexes)
+	tx, err := blockchain.Mempool().AddTxFromStakingAddress(utils.StakingAddress, myAddress, "unstaking ordered", utils.StakingNodePort, utils.StakingQuantity, myStakingInfo, indexes)
 	if err != nil {
 		rw.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(rw).Encode(errorResponse{err.Error()})

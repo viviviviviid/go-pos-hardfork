@@ -191,9 +191,9 @@ func handleMsg(m *Message, p *peer) {
 			proposalResult := &blockchain.ValidatedInfo{
 				ProposerPort:  payload.ProposerPort,
 				ProposalBlock: payload.ProposalBlock,
-				Port:          StakingPort,
+				Port:          utils.StakingNodePort,
 				Result:        result,
-				Signature:     blockchain.BlockSign(payload.ProposalBlock, StakingPort),
+				Signature:     blockchain.BlockSign(payload.ProposalBlock, utils.StakingNodePort),
 			}
 			proposalResult.ProposalBlock.Signature = validateSignature
 			SendProposalResult(proposalResult)
@@ -203,7 +203,7 @@ func handleMsg(m *Message, p *peer) {
 	case MessageProposalResponse:
 		var payload *blockchain.ValidatedInfo
 		utils.HandleErr(json.Unmarshal(m.Payload, &payload))
-		if payload.Port == StakingPort && payload.Result {
+		if payload.Port == utils.StakingNodePort && payload.Result {
 			blockchain.PersistBlock(payload.ProposalBlock)
 			blockchain.Blockchain().UpdateBlockchain(payload.ProposalBlock)
 			BroadcastNewBlock(payload.ProposalBlock)

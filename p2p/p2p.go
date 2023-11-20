@@ -12,9 +12,6 @@ import (
 
 var upgrader = websocket.Upgrader{}
 
-// PoS 스테이킹 풀 제공자 노드 포트
-const StakingPort = "3000"
-
 type validateRequest struct {
 	RoleInfo *blockchain.RoleInfo
 	Block    *blockchain.Block
@@ -86,7 +83,7 @@ func SendProposalBlock(r *blockchain.RoleInfo, b *blockchain.Block) {
 // PoS 스테이킹 풀 제공자 노드에게 검증결과 전달
 func SendValidatedResult(validatedInfo *blockchain.ValidatedInfo) {
 	for _, p := range Peers.v {
-		if p.port == "3000" { // staking port
+		if p.port == utils.StakingNodePort { // staking port
 			notifyValidatedResult(validatedInfo, p)
 		}
 	}

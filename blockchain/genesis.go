@@ -4,12 +4,14 @@ import "github.com/viviviviviid/go-coin/utils"
 
 // 제네시스 블록 구성 함수
 func createGenesisBlock() *Block {
+	genesisPort := utils.StakingNodePort
+	genesisAddr := utils.StakingAddress
 	roleInfo := &RoleInfo{
-		ProposerAddress:         "Genesis",
-		ProposerPort:            "3000",
+		ProposerAddress:         genesisAddr,
+		ProposerPort:            genesisPort,
 		ProposerSelectedHeight:  1,
-		ValidatorAddress:        []string{"Genesis", "Genesis", "Genesis"},
-		ValidatorPort:           []string{"3000", "3000", "3000"},
+		ValidatorAddress:        []string{genesisAddr, genesisAddr, genesisAddr},
+		ValidatorPort:           []string{genesisPort, genesisPort, genesisPort},
 		ValidatorSelectedHeight: 1,
 	}
 	block := &Block{

@@ -33,10 +33,9 @@ type storage interface {
 }
 
 var (
-	stakingQuantity = 100
-	b               *blockchain
-	once            sync.Once // sync 패키지
-	dbStorage       storage   = db.DB{}
+	b         *blockchain
+	once      sync.Once // sync 패키지
+	dbStorage storage   = db.DB{}
 )
 
 // bytes 형태의 블록체인 값 복구
@@ -215,7 +214,7 @@ func UTxOutsByStakingAddress(stakingAddress string, b *blockchain) ([]*UTxOut, [
 				}
 			}
 			for index, output := range tx.TxOuts {
-				if output.Address == stakingAddress && output.Amount == stakingQuantity {
+				if output.Address == stakingAddress && output.Amount == utils.StakingQuantity {
 					if _, ok := creatorTxs[tx.ID]; !ok {
 						uTxOut := &UTxOut{tx.ID, index, output.Amount, tx.InputData}
 						if !isOnMempool(uTxOut) {
