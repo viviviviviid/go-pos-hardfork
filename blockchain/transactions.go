@@ -78,7 +78,7 @@ func (t *Tx) sign(port string) {
 	}
 }
 
-// unstaking 시, PoS 조율자 겸 선출자 노드의 대리서명을 이용하여 스테이킹 자금 인출
+// unstaking 시, PoS 스테이킹 풀 제공자 노드의 대리서명을 이용하여 스테이킹 자금 인출
 func (t *Tx) delegateSign() {
 	for _, txIn := range t.TxIns {
 		txIn.Signature = wallet.DelegateSign(t.ID)

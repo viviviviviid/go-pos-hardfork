@@ -10,7 +10,6 @@ import (
 
 var (
 	ResLeastStaker = "PoS requires at least 4 Stakers to run" // 스테이킹 노드가 최소 4개여야 한다는 응답
-	stakingAddress = "c8546a75af42fd63669afa3d2e72b3567790aa8f2a54da1abb94ec03239c76638f45ada90e6e2a5af42efff001a66d90106fa898ae55d3168b11d9e120a0763d"
 )
 
 const (
@@ -19,7 +18,7 @@ const (
 	genesisHeight = 1
 )
 
-// 검증자 선정
+// 검증자 선출
 func (r *RoleInfo) selectValidator(b *blockchain, stakingList []*StakingInfo) {
 	selectedNumbers := make(map[int]bool)
 	var result []int
@@ -41,7 +40,7 @@ func (r *RoleInfo) selectValidator(b *blockchain, stakingList []*StakingInfo) {
 	r.ValidatorSelectedHeight = b.Height + 1 // b.Height는 현재 높이이고, 이제 추가할 블록의 높이는 +1로 해야함
 }
 
-// 제안자 선정
+// 제안자 선출
 func (r *RoleInfo) selectProposer(b *blockchain, stakingList []*StakingInfo) {
 	var selected *StakingInfo
 	for {
@@ -64,11 +63,11 @@ func (r *RoleInfo) selectProposer(b *blockchain, stakingList []*StakingInfo) {
 	r.ProposerSelectedHeight = b.Height + 1 // b.Height는 현재 높이이고, 이제 추가할 블록의 높이는 +1로 해야함
 }
 
-// 지정된 슬롯과 에포크에 따른 검증자와 제안자 선정
+// 지정된 슬롯과 에포크에 따른 검증자와 제안자 선출
 func (b *blockchain) Selector() (*RoleInfo, string) {
 	r := &RoleInfo{}
 
-	_, stakingWalletTx, _ := UTxOutsByStakingAddress(stakingAddress, b)
+	_, stakingWalletTx, _ := UTxOutsByStakingAddress(utils.StakingAddress, b)
 	stakingInfoList := GetStakingList(stakingWalletTx, b)
 
 	if len(stakingInfoList) <= 3 {

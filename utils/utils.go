@@ -13,6 +13,8 @@ import (
 
 var logFn = log.Panic
 
+const StakingAddress = "c8546a75af42fd63669afa3d2e72b3567790aa8f2a54da1abb94ec03239c76638f45ada90e6e2a5af42efff001a66d90106fa898ae55d3168b11d9e120a0763d"
+
 // 에러 핸들링
 func HandleErr(err error) {
 	if err != nil {

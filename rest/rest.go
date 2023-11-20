@@ -35,8 +35,7 @@ var (
 )
 
 const (
-	stakingAddress   = "c8546a75af42fd63669afa3d2e72b3567790aa8f2a54da1abb94ec03239c76638f45ada90e6e2a5af42efff001a66d90106fa898ae55d3168b11d9e120a0763d"
-	stakingAmount    = 100
+	stakingAmount    = 100    // PoS 스테이킹 필수 수량
 	stakingNodePort  = "3000" // PoS 스테이킹 풀 제공자 노드
 	unstakingMessage = "unstaked"
 )
@@ -259,7 +258,7 @@ func peers(rw http.ResponseWriter, r *http.Request) {
 
 // (/stake) PoS에 참여하기 위해, 스테이킹 트랜잭션을 멤풀에 추가 - (수량: 100, 기간: 1달)
 func stake(rw http.ResponseWriter, r *http.Request) {
-	tx, err := blockchain.Mempool().AddTx(stakingAddress, stakingAmount, port[1:], port[1:])
+	tx, err := blockchain.Mempool().AddTx(utils.StakingAddress, stakingAmount, port[1:], port[1:])
 	if err != nil {
 		rw.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(rw).Encode(errorResponse{err.Error()})
@@ -273,7 +272,7 @@ func stake(rw http.ResponseWriter, r *http.Request) {
 // (/unstake) 언스테이킹 트랜잭션을 멤풀에 추가 (락업 기한이 지났다면, 스테이킹 노드에게서 인출 요청)
 func unstake(rw http.ResponseWriter, r *http.Request) {
 	myAddress := wallet.Wallet(port[1:]).Address
-	_, stakingWalletTx, indexes := blockchain.UTxOutsByStakingAddress(stakingAddress, blockchain.Blockchain())
+	_, stakingWalletTx, indexes := blockchain.UTxOutsByStakingAddress(utils.StakingAddress, blockchain.Blockchain())
 	stakingInfoList := blockchain.GetStakingList(stakingWalletTx, blockchain.Blockchain())
 	myStakingInfo := blockchain.CheckStaking(stakingInfoList, myAddress)
 
@@ -289,7 +288,7 @@ func unstake(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tx, err := blockchain.Mempool().AddTxFromStakingAddress(stakingAddress, myAddress, "unstaking ordered", stakingNodePort, stakingAmount, myStakingInfo, indexes)
+	tx, err := blockchain.Mempool().AddTxFromStakingAddress(utils.StakingAddress, myAddress, "unstaking ordered", stakingNodePort, stakingAmount, myStakingInfo, indexes)
 	if err != nil {
 		rw.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(rw).Encode(errorResponse{err.Error()})
@@ -302,7 +301,7 @@ func unstake(rw http.ResponseWriter, r *http.Request) {
 
 // (/staking) 현재 스테이킹 중인 노드와 지갑정보를 조회
 func checkStaking(rw http.ResponseWriter, r *http.Request) {
-	_, stakingWalletTx, _ := blockchain.UTxOutsByStakingAddress(stakingAddress, blockchain.Blockchain())
+	_, stakingWalletTx, _ := blockchain.UTxOutsByStakingAddress(utils.StakingAddress, blockchain.Blockchain())
 	stakingInfoList := blockchain.GetStakingList(stakingWalletTx, blockchain.Blockchain())
 	utils.HandleErr(json.NewEncoder(rw).Encode(stakingInfoList))
 }
