@@ -18,12 +18,4 @@ Go Blockchain Hardfork Project (PoW -> PoS)
 
 If you wanna see logs of All nodes, then go to ./run_nodes/logs and open logs
 
-1. /
-2. /statud
-3. /blocks
-4. 
-
-
-
-
 
