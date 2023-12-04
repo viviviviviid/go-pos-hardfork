@@ -198,11 +198,11 @@ func handleMsg(m *Message, p *peer) {
 			proposalResult.ProposalBlock.Signature = validateSignature
 			SendProposalResult(proposalResult)
 			validatedResults = []*blockchain.ValidatedInfo{} // 그 뒤 다음블록의 새로운 검증자들의 결과를 받기위해서 초기화
-			if proposalResult.Result == false {              // 악의적인 노드로 판명났다면, 해당 제안자의 스테이킹 자금을 소각
-				// 3000번 본인포트로부터, 소각 주소로 보내 트랜잭션 구성 및 멤풀에 추가
-				// 트랜잭션 구성시, 제안자 노드가 스테이킹했던 트랜잭션 UTXO를 이용해야함. (unstake 내용 확인)
-				// 스테이킹 인포부터 불러와야함
-			}
+			// if proposalResult.Result == false {              // 악의적인 노드로 판명났다면, 해당 제안자의 스테이킹 자금을 소각
+			// 3000번 본인포트로부터, 소각 주소로 보내 트랜잭션 구성 및 멤풀에 추가
+			// 트랜잭션 구성시, 제안자 노드가 스테이킹했던 트랜잭션 UTXO를 이용해야함. (unstake 내용 확인)
+			// 스테이킹 인포부터 불러와야함
+			// }
 		}
 
 	case MessageProposalResponse:
