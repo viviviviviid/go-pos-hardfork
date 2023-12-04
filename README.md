@@ -1,7 +1,10 @@
 # go-pos-hardfork
 Go Blockchain Hardfork Project (PoW -> PoS)
 
+Project Description Link
+https://bit.ly/viviviviviid-pos
 
+Start
 1. clone repo
 2. go to ./run_nodes
 3. run this command
@@ -17,5 +20,6 @@ Go Blockchain Hardfork Project (PoW -> PoS)
 ```
 
 If you wanna see logs of All nodes, then go to ./run_nodes/logs and open logs
+
 
 
