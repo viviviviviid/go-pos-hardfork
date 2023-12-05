@@ -5,9 +5,9 @@ Go Blockchain Hardfork Project (PoW -> PoS)
 https://bit.ly/viviviviviid-pos
 
 ### Blog Link
-https://viviviviviid.tistory.com/62
-https://viviviviviid.tistory.com/63
-https://viviviviviid.tistory.com/64
+1. https://viviviviviid.tistory.com/62
+2. https://viviviviviid.tistory.com/63
+3. https://viviviviviid.tistory.com/64
 
 ### Start
 1. clone repo
