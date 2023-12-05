@@ -1,10 +1,15 @@
 # go-pos-hardfork
 Go Blockchain Hardfork Project (PoW -> PoS)
 
-Project Description Link
+### Project Description Link
 https://bit.ly/viviviviviid-pos
 
-Start
+### Blog Link
+https://viviviviviid.tistory.com/62
+https://viviviviviid.tistory.com/63
+https://viviviviviid.tistory.com/64
+
+### Start
 1. clone repo
 2. go to ./run_nodes
 3. run this command
