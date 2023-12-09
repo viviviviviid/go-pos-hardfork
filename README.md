@@ -10,18 +10,17 @@ https://bit.ly/viviviviviid-pos
 3. https://viviviviviid.tistory.com/64
 
 ### Start
-1. clone repo
-2. go to ./run_nodes
-3. run this command
+1. go to ./run_nodes
+2. run this command
 ```
 ./run_nodes.sh
 ```
-4. open http://localhost:4000/ (Choose 4000~4009)
-5. enjoy all pages
-6. Blocks will be added to the chain every 10 seconds. Check http://localhost:4000/blocks
-7. kill all nodes using this command
+3. open http://localhost:4000/ (Choose 4000~4009)
+4. enjoy all pages
+5. Blocks will be added to the chain every 10 seconds. Check http://localhost:4000/blocks
+6. kill all nodes using this command
 ```
-./kill_nodes.sh
+./kill_nodes.sh // essential
 ```
 
 If you wanna see logs of All nodes, then go to ./run_nodes/logs and open logs
