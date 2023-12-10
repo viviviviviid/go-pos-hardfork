@@ -23,6 +23,7 @@ https://bit.ly/viviviviviid-pos
 ./kill_nodes.sh // essential
 ```
 
+
 If you wanna see logs of All nodes, then go to ./run_nodes/logs and open logs
 
 
