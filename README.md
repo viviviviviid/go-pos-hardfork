@@ -23,6 +23,7 @@ https://bit.ly/viviviviviid-pos
 ./kill_nodes.sh // 필수
 ```
 
+### 로그 확인
 노드들의 로그들을 확인하려면, /run_nodes/logs 폴더로 진입하여 확인하세요.
 
 
